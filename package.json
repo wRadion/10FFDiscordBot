@@ -1,0 +1,23 @@
+{
+  "name": "10ffdiscordbot",
+  "version": "1.0.0",
+  "description": "A Discord Bot written in JavaScript for the official 10FF Discord.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wRadion/10FFDiscordBot.git"
+  },
+  "author": "wRadion",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wRadion/10FFDiscordBot/issues"
+  },
+  "homepage": "https://github.com/wRadion/10FFDiscordBot#readme",
+  "dependencies": {
+    "discord.js": "^12.3.1",
+    "puppeteer": "^5.3.0"
+  }
+}
