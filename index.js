@@ -14,7 +14,7 @@ const LANGUAGES = [null,
 
 client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`)
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
 
   const normRoles = [];
   const advRoles = [];
