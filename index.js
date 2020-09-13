@@ -36,6 +36,11 @@ client.on('ready', async () => {
   const acceptedUsers = {};
 
   client.on('message', async (message) => {
+    if (message.channel.type === 'dm' && message.author.name === 'wRadion' && message.content === 'ping') {
+      message.channel.send('Pong!');
+      return;
+    }
+
     if (message.channel.type !== 'dm' && message.channel.id !== '392327059881328650') return;
 
     const authorId = message.author.id;
@@ -65,18 +70,19 @@ client.on('ready', async () => {
       }
 
       let msg = '';
+      const roleManager = member.roles;
       // Remove All current + add Normal Role
       for (let role of Object.values(normRoles)) {
-        if (member.roles.cache.find((k, v) => v === role.id)) member.roles.remove(role);
+        if (roleManager.cache.find((k, v) => v === role.id)) roleManager.remove(role);
       }
-      await member.roles.add(normRole, `By Bot, Max WPM is ${maxNorm}.`);
+      await roleManager.add(normRole, `By Bot, Max WPM is ${maxNorm}.`);
       msg += `You were given the role **${normRole.name}** role successfully.`;
 
       // Remove All current + add Advanced Role
       for (let role of Object.values(advRoles)) {
-        if (member.roles.cache.find((k, v) => v === role.id)) member.roles.remove(role);
+        if (roleManager.cache.find((k, v) => v === role.id)) roleManager.remove(role);
       }
-      await member.roles.add(advRole, `By Bot, Max Advanced WPM is ${maxAdv}.`);
+      await roleManager.add(advRole, `By Bot, Max Advanced WPM is ${maxAdv}.`);
       msg += `\nYou were given the role **${advRole.name}** role successfully.`;
 
       botMessage.edit(msg);
