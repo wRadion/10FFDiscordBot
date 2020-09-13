@@ -1,3 +1,11 @@
+// Bind the port to avoid Heroku taking it as a bug
+const express = require('express');
+const app = express();
+app.get('/', (req, res) => { res.send('Yes') })
+const port = process.env.PORT || 3000;
+app.listen(port, () => { console.log(`Example app listening at http://localhost:${port}`) })
+// END
+
 const puppeteer = require('puppeteer');
 const Discord = require('discord.js');
 const client = new Discord.Client();
