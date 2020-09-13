@@ -11,6 +11,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 
 const GUILD_ID = '362145917933060097';
+const WRADION_ID = '98073537113247744';
 
 const LANGUAGES = [null,
   "english", "german", "french", "portugese", "spanish", "indonesian", "turkish", "vietnamese", "polish", "romanian", "malaysian",
@@ -44,12 +45,12 @@ client.on('ready', async () => {
   const acceptedUsers = {};
 
   client.on('message', async (message) => {
-    if (message.channel.type === 'dm' && message.author.name === 'wRadion' && message.content === 'ping') {
+    if (message.channel.type !== 'dm' && message.channel.id !== '392327059881328650') return;
+
+    if (message.channel.type === 'dm' && message.author.id === WRADION_ID && message.content === 'ping') {
       message.channel.send('Pong!');
       return;
     }
-
-    if (message.channel.type !== 'dm' && message.channel.id !== '392327059881328650') return;
 
     const authorId = message.author.id;
     const member = await guild.members.fetch(authorId);
