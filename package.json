@@ -4,6 +4,7 @@
   "description": "A Discord Bot written in JavaScript for the official 10FF Discord.",
   "main": "index.js",
   "scripts": {
+    "start": "node index",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
