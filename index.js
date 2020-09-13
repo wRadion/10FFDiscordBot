@@ -55,17 +55,17 @@ client.on('ready', async () => {
     const authorId = message.author.id;
     const member = await guild.members.fetch(authorId);
 
-    if (message.channel.type === 'dm' && acceptedUsers[authorId]) {
+    if (message.channel.type === 'dm' && acceptedUsers[authorId] && message.content.match(/^\s*\d+\s+\d+\s*$/)) {
       const botMessage = await message.channel.send('Please wait...');
 
       // Check and Add role to user
       const [maxNorm, maxAdv] = acceptedUsers[authorId];
-      const [norm, adv] = message.content.split(' ').map(i => Math.round(Number(i)/10));
+      const [norm, adv] = message.content.trim().split(/\s+/).map(i => Math.floor(Number(i)/10));
       const normRole = normRoles[norm];
       const advRole = advRoles[adv];
 
-      const normValid = maxNorm > 0 && norm <= maxNorm;
-      const advValid = maxAdv > 0 && adv <= maxAdv;
+      const normValid = maxNorm > 0 && (norm * 10) <= maxNorm;
+      const advValid = maxAdv > 0 && (adv * 10) <= maxAdv;
 
       if (!normValid || !advValid) {
         let msg = '';
@@ -111,6 +111,10 @@ client.on('ready', async () => {
     const [profileUrl, language] = args;
     const langId = LANGUAGES.indexOf(language);
 
+    if (!profileUrl.match(/https:\/\/10fastfingers.com\/user\/\d+\/?/)) {
+      botMessage.edit(`Error: 10FF Profile url \`${profileUrl}\` is invalid.\nExample of valid 10FF profile URL: \`https://10fastfingers.com/user/1234\``);
+      return;
+    }
     if (langId < 0) {
       botMessage.edit(`Error: Language \`${language}\` doesn't exist.`);
       return;
@@ -174,8 +178,8 @@ client.on('ready', async () => {
             `__**Language:**__ \`${language}\`\n` +
             `__**Max Norm/Adv:**__ \`${maxNormWpm} WPM\` / \`${maxAdvWpm} WPM\`\n\n`);
           acceptedUsers[authorId] = [maxNormWpm, maxAdvWpm];
-          message.author.dmChannel.send(`You can choose your desired roles here for normal and advanced by typing 2 numbers. Example:\n` +
-            `Type \`120 90\` to have the **120-129 WPM** and **90~99 WPM (Advanced)** role.`);
+          message.author.dmChannel.send(`You can choose your desired roles here for normal and advanced by typing 2 numbers.\n` +
+            `__Example:__ Type \`120 90\` to have the **120-129 WPM** and **90~99 WPM (Advanced)** role.`);
         }
         catch (e)
         {
