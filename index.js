@@ -20,8 +20,8 @@ client.on('ready', async () => {
 client.on('message', async (message) => {
   const user = message.author;
   const member = await server.members.fetch(user.id);
-  if (user.id !== data.config.wradionId) return; // Debug
-  //if (message.channel.id !== data.config.roleRequestChannelId) return;
+  //if (user.id !== data.config.wradionId) return; // Debug
+  if (message.channel.id !== data.config.roleRequestChannelId) return;
 
   const args = message.content.split(' ');
   const command = args.shift();
