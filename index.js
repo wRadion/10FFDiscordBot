@@ -21,8 +21,8 @@ client.on('ready', async () => {
 
 client.on('message', async (message) => {
   const user = message.author;
-  if (user.id !== data.config.wradionId) return; // Debug
-  /*if (message.channel.type === 'dm' && user.id === data.config.wradionId) {
+  //if (user.id !== data.config.wradionId) return; // Debug
+  if (message.channel.type === 'dm' && user.id === data.config.wradionId) {
     if (message.content === 'disable') {
       enabled = false;
       message.channel.send('Bot is now disabled.');
@@ -33,7 +33,7 @@ client.on('message', async (message) => {
     }
     return;
   }
-  else if (message.channel.id !== data.config.roleRequestChannelId) return;*/
+  else if (message.channel.id !== data.config.roleRequestChannelId) return;
 
   // Get Command name and Args
   const args = message.content.split(' ');
