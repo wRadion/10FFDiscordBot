@@ -26,12 +26,13 @@ client.on('message', async (message) => {
     if (message.content === 'disable') {
       enabled = false;
       message.channel.send('Bot is now disabled.');
+      return;
     }
     else if (message.content === 'enable') {
       enabled = true;
       message.channel.send('Bot is now enabled.');
+      return;
     }
-    return;
   }
   else if (message.channel.id !== data.config.roleRequestChannelId) return;
 
@@ -40,7 +41,7 @@ client.on('message', async (message) => {
   const command = args.shift();
 
   // Command `role`
-  if (command !== 'role') return;
+  if (command !== '!role') return;
   console.debug(`User ${user.username} issued command \`${message}\``);
 
   if (!enabled) {
@@ -49,7 +50,6 @@ client.on('message', async (message) => {
   }
 
   // Init command
-  async function send(msg) { return await user.dmChannel.send(msg); }
   let url, language, norm, adv;
 
   // Automatic params assignment
@@ -78,12 +78,17 @@ client.on('message', async (message) => {
     break;
   };
 
+  const member = await server.members.fetch(user.id);
+  let dm = user.dmChannel;
+  if (!dm) dm = await member.createDM();
+  async function send(msg) { return await dm.send(msg); }
+
   if (reason) {
     await send(
       `:x: **Error:** Invalid arguments for \`${command}\`:\n` +
       '\t\t' + reason + '\n\n' +
-      `:small_blue_diamond: __Usage:__ \`role <profile url> <language> <normal wpm role> <advanced wpm role>\`\n\n` +
-      `:small_blue_diamond: __Example:__ \`role https://10fastfingers.com/user/209050/ english 120 90\`\n` +
+      `:small_blue_diamond: __Usage:__ \`${command} <profile url> <language> <normal wpm role> <advanced wpm role>\`\n\n` +
+      `:small_blue_diamond: __Example:__ \`${command} https://10fastfingers.com/user/209050/ english 120 90\`\n` +
       `\t\tTo get the **120-129 WPM** role in _normal_, and **90~99 WPM (Advanced)** role in _advanced_.\n\n` +
       ':small_blue_diamond: __Tips:__\n' +
       `\t\tYou can omit the \`<language>\` if you wish to use your primary language (first flag in your profile graph)\n` +
@@ -93,7 +98,6 @@ client.on('message', async (message) => {
   }
 
   // Command execution
-  const member = await server.members.fetch(user.id);
   let botMessage = await send(':watch: Please wait...');
   const langId = language ? data.languages.indexOf(language) : 0;
 
