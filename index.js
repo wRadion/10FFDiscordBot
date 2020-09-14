@@ -21,7 +21,8 @@ client.on('ready', async () => {
 
 client.on('message', async (message) => {
   const user = message.author;
-  if (message.channel.type === 'dm' && user.id === data.config.wradionId) {
+  if (user.id !== data.config.wradionId) return; // Debug
+  /*if (message.channel.type === 'dm' && user.id === data.config.wradionId) {
     if (message.content === 'disable') {
       enabled = false;
       message.channel.send('Bot is now disabled.');
@@ -32,7 +33,7 @@ client.on('message', async (message) => {
     }
     return;
   }
-  else if (message.channel.id !== data.config.roleRequestChannelId) return;
+  else if (message.channel.id !== data.config.roleRequestChannelId) return;*/
 
   // Get Command name and Args
   const args = message.content.split(' ');
@@ -92,6 +93,7 @@ client.on('message', async (message) => {
   }
 
   // Command execution
+  const member = await server.members.fetch(user.id);
   let botMessage = await send(':watch: Please wait...');
   const langId = language ? data.languages.indexOf(language) : 0;
 
@@ -101,7 +103,7 @@ client.on('message', async (message) => {
     editMsg.count = (editMsg.count + 1) % 12;
   }
 
-  await wpm.fetchMaxNormAdv(url, langId, editMsg, async (newLangId, maxNorm, maxAdv) => {
+  await wpm.fetchMaxNormAdv(user, member, url, langId, editMsg, async (newLangId, maxNorm, maxAdv) => {
     language = data.languages[newLangId];
 
     botMessage.edit(
@@ -127,7 +129,6 @@ client.on('message', async (message) => {
     adv = Math.floor(adv / 10);
 
     let normRole, advRole;
-    const member = await server.members.fetch(user.id);
     const rolesCache = member.roles.cache;
 
     // Update Normal roles

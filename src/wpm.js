@@ -1,13 +1,23 @@
 const Browser = require('../lib/browser');
 
 module.exports = {
-  fetchMaxNormAdv: async function(url, langId, logFonction, callback) {
+  fetchMaxNormAdv: async function(user, member, url, langId, logFonction, callback) {
     const userId = url.match(/(\d+)\/?$/)[1];
 
     const browser = new Browser(logFonction);
     await browser.launch();
     const page = await browser.newPage();
     await page.goto(url);
+
+    const username = await page.$('#main-content > div > h2', n => n.innerText);
+    const description = await page.$('#profile-description', n => n.innerText);
+
+    if (!username.match(`${user.username}`) && !description.match(`${user.username}`)) {
+      await browser.close();
+      logFonction(`:x: **Error:** Your 10FF Name/Description doesn't contain your Discord username (${user.username})`);
+      return;
+    }
+
     await page.click('#graph-fullscreen');
 
     if (langId <= 0) langId = parseInt(await page.$('span.flag.active', n => n['id'].substring(6)));
