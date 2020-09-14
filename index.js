@@ -1,209 +1,141 @@
-// Bind the port to avoid Heroku taking it as a bug
-const express = require('express');
-const app = express();
-app.get('/', (req, res) => { res.send('Yes') })
+// Bind the port for Heroku
+const app = require('express')();
+app.get('/', (req, res) => { res.send('OK') })
 const port = process.env.PORT || 3000;
-app.listen(port, () => { console.log(`Example app listening at http://localhost:${port}`) })
+app.listen(port, () => console.log(`Listening port ${port}`))
 // END
 
-const puppeteer = require('puppeteer');
 const Discord = require('discord.js');
 const client = new Discord.Client();
+let server;
 
-const GUILD_ID = '362145917933060097';
-const WRADION_ID = '98073537113247744';
-
-const LANGUAGES = [null,
-  "english", "german", "french", "portugese", "spanish", "indonesian", "turkish", "vietnamese", "polish", "romanian", "malaysian",
-  "norwegian", "persian", "hungarian", "chinese_traditional", "chinese_simplified", "danish", "dutch", "swedish", "italian",
-  "finnish", "serbian", "catalan", "filipino", "croatian", "russian", "arabic", "bulgarian", "japanese", "albanian", "korean",
-  "greek", "czech", "estonian", "latvian", "hebrew", "urdu", "galician", "lithuanian", "georgian", "armenian", "kurdish", "azerbaijani",
-  "hindi", "slovak", "slovenian", null, "icelandic", null, "thai", "pashto", "esperanto", "ukrainian", "macedonian", "malagasy", "bengali",
-];
+const wpm = require('./src/wpm');
+const data = require('./src/data');
 
 client.on('ready', async () => {
-  console.log(`Logged in as ${client.user.tag}!`)
-  const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
+  console.log(`Logged in as ${client.user.tag}!`);
+  server = await client.guilds.fetch(data.config.guildId);
+});
 
-  const normRoles = [];
-  const advRoles = [];
+client.on('message', async (message) => {
+  const user = message.author;
+  const member = await server.members.fetch(user.id);
+  if (user.id !== data.config.wradionId) return; // Debug
+  //if (message.channel.id !== data.config.roleRequestChannelId) return;
 
-  const guild = await client.guilds.fetch(GUILD_ID);
-  for (let [key, value] of guild.roles.cache) {
-    const roleName = value.name;
+  const args = message.content.split(' ');
+  const command = args.shift();
 
-    const normMatch = roleName.match(/^(\d+).(\d+) WPM$/i);
-    if (normMatch) {
-      normRoles[Math.round(parseInt(normMatch[1])/10)] = value;
-    }
-    const advMatch = roleName.match(/^(\d+).(\d+) WPM \(Advanced\)$/i);
-    if (advMatch) {
-      advRoles[Math.round(parseInt(advMatch[1])/10)] = value;
+  // Command `role`
+  if (command !== 'role') return;
+  console.debug(`User ${user.username} issued command \`${message}\``);
+
+  // Init command
+  async function send(msg) { return await user.dmChannel.send(msg); }
+  let url, language, norm, adv;
+
+  // Automatic params assignment
+  for (const arg of args) {
+    if (arg.match(/https:\/\/10fastfingers.com\/user\/\d+\/?/)) {
+      url = arg;
+    } else if (arg.match(/^[a-zA-Z_]+$/)) {
+      language = arg.toLowerCase();
+    } else if (arg.match(/^\d+$/)) {
+      if (!norm) norm = parseInt(arg);
+      else if (!adv) adv = parseInt(arg);
+      else { /* Error */ }
+    } else {
+      // Error
     }
   }
 
-  const acceptedUsers = {};
+  // Params validation
+  let reason = null;
 
-  client.on('message', async (message) => {
-    if (message.channel.type !== 'dm' && message.channel.id !== '392327059881328650') return;
+  while (true) {
+    if (!url) { reason = `Invalid 10FF Profile URL: \`${url}\`!`; break; }
+    if (language && !data.languages.includes(language)) { reason = `Language \`${language}\` doesn't exist!`; break; }
+    if (0 > norm || norm >= 250) { reason = 'Normal WPM should be between 0 and 250!'; break; }
+    if (0 > adv || adv >= 220) { reason = 'Advanced WPM should be between 0 and 220!'; break; }
+    break;
+  };
 
-    if (message.channel.type === 'dm' && message.author.id === WRADION_ID && message.content === 'ping') {
-      message.channel.send('Pong!');
+  if (reason) {
+    await send(
+      `:x: **Error:** Invalid arguments for \`${command}\`:\n` +
+      '\t\t' + reason + '\n\n' +
+      `:small_blue_diamond: __Usage:__ \`role <profile url> <language> <normal wpm role> <advanced wpm role>\`\n\n` +
+      `:small_blue_diamond: __Example:__ \`role https://10fastfingers.com/user/209050/ english 120 90\`\n` +
+      `\t\tTo get the **120-129 WPM** role in _normal_, and **90~99 WPM (Advanced)** role in _advanced_.\n\n` +
+      ':small_blue_diamond: __Tips:__\n' +
+      `\t\tYou can omit the \`<language>\` if you wish to use your primary language (first flag in your profile graph)\n` +
+      `\t\tYou can omit the \`<normal wpm role>\` and \`<advanced wpm role>\` if you wish me to detect automatically your highests scores.`
+    );
+    return;
+  }
+
+  // Command execution
+  let botMessage = await send(':watch: Please wait...');
+  const langId = language ? data.languages.indexOf(language) : 0;
+
+  function editMsg(msg) {
+    if (typeof(editMsg.count) === 'undefined') editMsg.count = 0;
+    botMessage.edit(`:clock${editMsg.count + 1}: ${msg}`);
+    editMsg.count = (editMsg.count + 1) % 12;
+  }
+
+  await wpm.fetchMaxNormAdv(url, langId, editMsg, async (newLangId, maxNorm, maxAdv) => {
+    language = data.languages[newLangId];
+
+    botMessage.edit(
+      `:information_source: Your max detected WPM over your last 400 tests and 10 competitions in **${language}** is\n` +
+      `Normal: \`${maxNorm} WPM\`, Advanced: \`${maxAdv} WPM\``
+    );
+
+    if (!norm) norm = maxNorm;
+    if (!adv) adv = maxAdv;
+
+    botMessage = await send(':watch: Please wait...');
+
+    if (norm > maxNorm) {
+      botMessage.edit(`:x: **Error:** You can't have the **${norm} WPM** role as your detected max normal WPM is **${maxNorm} WPM**.`);
+      return;
+    }
+    if (adv > maxAdv) {
+      botMessage.edit(`:x: **Error:** You can't have the **${adv} WPM** role as your detected max advanced WPM is **${maxAdv} WPM**.`);
       return;
     }
 
-    const authorId = message.author.id;
-    const member = await guild.members.fetch(authorId);
+    norm = Math.floor(norm / 10);
+    adv = Math.floor(adv / 10);
 
-    if (message.channel.type === 'dm' && acceptedUsers[authorId] && message.content.match(/^\s*\d+\s+\d+\s*$/)) {
-      const botMessage = await message.channel.send('Please wait...');
+    let normRole, advRole;
+    const rolesCache = member.roles.cache;
 
-      // Check and Add role to user
-      const [maxNorm, maxAdv] = acceptedUsers[authorId];
-      const [norm, adv] = message.content.trim().split(/\s+/).map(i => Math.floor(Number(i)/10));
-      const normRole = normRoles[norm];
-      const advRole = advRoles[adv];
-
-      const normValid = maxNorm > 0 && (norm * 10) <= maxNorm;
-      const advValid = maxAdv > 0 && (adv * 10) <= maxAdv;
-
-      if (!normValid || !advValid) {
-        let msg = '';
-        if (!normValid) msg +=`You cannot have the **${normRole.name}** role as your detected max normal WPM is **${maxNorm} WPM**.`;
-        if (!advValid) {
-          if (msg.length > 0) msg += '\n';
-          msg += `You cannot have the **${advRole.name}** role as your detected max advanced WPM is **${maxAdv} WPM**.`;
-        }
-        botMessage.edit(msg);
-        return;
-      }
-
-      let msg = '';
-      const roleManager = member.roles;
-      // Remove All current + add Normal Role
-      for (let role of Object.values(normRoles)) {
-        if (roleManager.cache.find((k, v) => v === role.id)) roleManager.remove(role);
-      }
-      await roleManager.add(normRole, `By Bot, Max WPM is ${maxNorm}.`);
-      msg += `You were given the role **${normRole.name}** role successfully.`;
-
-      // Remove All current + add Advanced Role
-      for (let role of Object.values(advRoles)) {
-        if (roleManager.cache.find((k, v) => v === role.id)) roleManager.remove(role);
-      }
-      await roleManager.add(advRole, `By Bot, Max Advanced WPM is ${maxAdv}.`);
-      msg += `\nYou were given the role **${advRole.name}** role successfully.`;
-
-      botMessage.edit(msg);
-      return;
+    // Update Normal roles
+    const normRoles = data.roles.norm;
+    for (let i = 0; i < normRoles.length; ++i) {
+      const role = await server.roles.fetch(normRoles[i]);
+      if (i === norm) {
+        await member.roles.add(role, `Added By Bot, Max WPM is ${maxNorm}`);
+        normRole = role;
+      } else if (rolesCache.find((k, v) => v === role.id)) await member.roles.remove(role);
     }
 
-    const args = message.content.split(' ');
-    const command = args.shift();
-    if (command !== 'role') return
-    if (args.length !== 2) {
-      await message.channel.send('Wrong number of arguments. Usage:\n```role <your 10ff profile url> <language>```');
-      return;
+    // Update Advanced roles
+    const advRoles = data.roles.adv;
+    for (let i = 0; i < advRoles.length; ++i) {
+      const role = await server.roles.fetch(advRoles[i]);
+      if (i === adv) {
+        await member.roles.add(role, `Added By Bot, Max WPM is ${maxAdv}`);
+        advRole = role;
+      } else if (rolesCache.find((k, v) => v === role.id)) await member.roles.remove(role);
     }
 
-    const botMessage = await message.channel.send('Please wait...');
-
-    const [profileUrl, language] = args;
-    const langId = LANGUAGES.indexOf(language);
-
-    if (!profileUrl.match(/https:\/\/10fastfingers.com\/user\/\d+\/?/)) {
-      botMessage.edit(`Error: 10FF Profile url \`${profileUrl}\` is invalid.\nExample of valid 10FF profile URL: \`https://10fastfingers.com/user/1234\``);
-      return;
-    }
-    if (langId < 0) {
-      botMessage.edit(`Error: Language \`${language}\` doesn't exist.`);
-      return;
-    }
-
-    const userId = profileUrl.match(/(\d+)\/?$/)[1];
-
-    try
-    {
-      const page = await browser.newPage();
-      await page.goto(profileUrl);
-
-      await page.waitForSelector('#graph-fullscreen');
-      await page.click('#graph-fullscreen');
-      const langBtnSelector = `#graph-flag-selection-fullscreen a[speedtest_id='${langId}']`;
-      await page.waitForSelector(langBtnSelector);
-
-      page.on('response', async (e) => {
-        try
-        {
-          const url = e.request().url();
-          if (url !== `https://10fastfingers.com/users/get_graph_data/1/${userId}/${langId}`) return;
-          const body = await e.json();
-          let maxNormWpm = parseInt(body.max_norm);
-          const maxAdvWpm = parseInt(body.max_adv);
-
-          // Fetch competitions
-          const competWpms = [];
-          const rows = await page.$$('#recent-competitions tr');
-          for (let i = 1; i < rows.length; ++i) {
-            const competLangId = await rows[i].$eval('span.flag', node => parseInt(node['id'].substring(6)));
-            if (competLangId !== langId) continue;
-            const link = await rows[i].$eval('a', node => node['href']);
-            const competScoreSelector = `tr[user_id='${userId}'] .wpm`;
-            const competPage = await browser.newPage();
-
-            try
-            {
-              // Fetch single competition wpm
-              await competPage.goto(link);
-              await competPage.waitForSelector(competScoreSelector);
-              const competWpm = await competPage.$eval(competScoreSelector, node => parseInt(node.innerText));
-              competWpms.push(competWpm);
-            }
-            catch (e)
-            {
-              botMessage.edit('An error has occured while trying to fetch your competitions scores.\n' +
-                'Please try again later.\n' +
-                'Error:\n```' + e + '```'
-              );
-            }
-            finally
-            {
-              await competPage.close();
-            }
-          }
-
-          // Code goes here
-          maxNormWpm = Math.max(maxNormWpm, ...competWpms);
-          botMessage.edit(`__**User Id:**__ \`#${userId}\`\n` +
-            `__**Language:**__ \`${language}\`\n` +
-            `__**Max Norm/Adv:**__ \`${maxNormWpm} WPM\` / \`${maxAdvWpm} WPM\`\n\n`);
-          acceptedUsers[authorId] = [maxNormWpm, maxAdvWpm];
-          message.author.dmChannel.send(`You can choose your desired roles here for normal and advanced by typing 2 numbers.\n` +
-            `__Example:__ Type \`120 90\` to have the **120-129 WPM** and **90~99 WPM (Advanced)** role.`);
-        }
-        catch (e)
-        {
-          botMessage.edit('An error has occured while trying to fetch your graph data.\n' +
-            'Please try again later.\n' +
-            'Error:\n```' + e + '```'
-          );
-        }
-        finally
-        {
-          await page.close();
-        }
-      });
-
-      await page.waitForTimeout(500);
-      await page.click(langBtnSelector);
-    }
-    catch (e)
-    {
-      botMessage.edit('An error has occured while trying to fetch your user profile.\n' +
-        'Please check that your profile is accessible and try again.\n' +
-        'Error:\n```' + e + '```'
-      );
-    }
+    botMessage.edit(
+      `:white_check_mark: Success! You were given the role **${normRole.name}** (normal) and **${advRole.name}** (advanced).\n` +
+      'All your others WPM roles were removed.'
+    );
   });
 });
 
