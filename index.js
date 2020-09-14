@@ -9,7 +9,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 let server;
 
-const enabled = true;
+let enabled = true;
 
 const wpm = require('./src/wpm');
 const data = require('./src/data');
