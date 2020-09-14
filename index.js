@@ -3,11 +3,13 @@ const app = require('express')();
 app.get('/', (req, res) => { res.send('OK') })
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Listening port ${port}`))
-// END
+// End
 
 const Discord = require('discord.js');
 const client = new Discord.Client();
 let server;
+
+const enabled = true;
 
 const wpm = require('./src/wpm');
 const data = require('./src/data');
@@ -19,16 +21,31 @@ client.on('ready', async () => {
 
 client.on('message', async (message) => {
   const user = message.author;
-  const member = await server.members.fetch(user.id);
-  //if (user.id !== data.config.wradionId) return; // Debug
-  if (message.channel.id !== data.config.roleRequestChannelId) return;
+  if (message.channel.type === 'dm' && user.id === data.config.wradionId) {
+    if (message.content === 'disable') {
+      enabled = false;
+      message.channel.send('Bot is now disabled.');
+    }
+    else if (message.content === 'enable') {
+      enabled = true;
+      message.channel.send('Bot is now enabled.');
+    }
+    return;
+  }
+  else if (message.channel.id !== data.config.roleRequestChannelId) return;
 
+  // Get Command name and Args
   const args = message.content.split(' ');
   const command = args.shift();
 
   // Command `role`
   if (command !== 'role') return;
   console.debug(`User ${user.username} issued command \`${message}\``);
+
+  if (!enabled) {
+    console.log('Bot is disabled.');
+    return;
+  }
 
   // Init command
   async function send(msg) { return await user.dmChannel.send(msg); }
@@ -110,6 +127,7 @@ client.on('message', async (message) => {
     adv = Math.floor(adv / 10);
 
     let normRole, advRole;
+    const member = await server.members.fetch(user.id);
     const rolesCache = member.roles.cache;
 
     // Update Normal roles
