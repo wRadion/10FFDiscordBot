@@ -142,7 +142,7 @@ client.on('message', async (message) => {
       for (let id of roles.toAdd) {
         const role = await server.roles.fetch(id);
         addedRoles.push(role.name);
-        if (!process.env.DEBUG) await member.roles.add(role, `Added by ${client.user.tag}`
+        if (!process.env.DEBUG) await member.roles.add(role, `Added by ${client.user.tag}`);
       }
 
       for (let id of roles.toRemove) {
