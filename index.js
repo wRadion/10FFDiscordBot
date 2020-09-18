@@ -171,6 +171,7 @@ client.on('message', async (message) => {
       }
 
       logFunction(`Done (${(Date.now() - startTime)/1000} sec)`);
+      message.react('✅');
     }
   );
 });
