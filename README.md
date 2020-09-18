@@ -4,7 +4,7 @@
 1. [Summary](#summary)
 2. [Identification](#identification)
 3. [Roles](#roles)
-    - [Verified](#verified) ✅
+    - [Verified](#verified-) ✅
 4. [Additional Information](#additional-information)
     - [Language](#language)
     - [Maximum WPM](#maximum-wpm)
