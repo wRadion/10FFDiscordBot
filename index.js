@@ -18,7 +18,7 @@ client.on('message', async (message) => {
   const startTime = Date.now();
   let user = message.author;
 
-  if (message.channel.type === 'dm' && user.id === config.wradionId) {
+  if (message.channel.type === 'dm' && [config.wradionId, ...Object.values(config.moderators)].includes(user.id) {
     if (message.content === 'disable') {
       enabled = false;
       message.channel.send('Bot is now disabled.');
