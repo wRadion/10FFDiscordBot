@@ -119,13 +119,13 @@ client.on('message', async (message) => {
     }),
     async (maxNorm, maxAdv, wpmRoles, removedVerified) => {
       for (let id of Object.values(config.moderators)) {
-        id = config.wradionId;
         const moderatorMember = await server.members.fetch(id);
         const moderatorUser = moderatorMember.user;
 
         let dm = moderatorUser.dmChannel;
         if (!dm) dm = await moderatorMember.createDM();
         dm.send(
+          (process.env.DEBUG ? '**This is a DEBUG message, please ignore it**\n\n' : '') +
           `:warning: Headsup, **${moderatorUser.username}**!\n\n` +
           `User **${user.tag}** (__${member.nickname || user.username}__) updated his WPM roles.\n` +
           `Here is the 10FF profile link he provided: ${url}\n` +
