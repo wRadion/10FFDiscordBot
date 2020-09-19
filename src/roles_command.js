@@ -77,14 +77,14 @@ module.exports = {
         for (let id of roles.toAdd) {
           const role = await server.roles.fetch(id);
           addedRoles.push(role.name);
-          if (!process.env.DEBUG) await member.roles.add(role, `Added by ${client.user.tag}`);
+          if (!process.env.DEBUG) await member.roles.add(role, `Added by Roles Request Bot`);
         }
 
         // Remove roles to remove
         for (let id of roles.toRemove) {
           const role = await server.roles.fetch(id);
           removedRoles.push(role.name);
-          if (!process.env.DEBUG) await member.roles.remove(role, `Removed by ${client.user.tag}`);
+          if (!process.env.DEBUG) await member.roles.remove(role, `Removed by Roles Request Bot`);
         }
 
         if (addedRoles.length > 0 || removedRoles.length > 0) {

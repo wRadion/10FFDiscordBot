@@ -19,6 +19,7 @@
   "homepage": "https://github.com/wRadion/10FFDiscordBot#readme",
   "dependencies": {
     "discord.js": "^12.3.1",
+    "eslint": "^7.9.0",
     "puppeteer": "^5.3.0"
   }
 }

@@ -1,5 +1,5 @@
-const puppeteer = require('puppeteer');
 const Browser = require('../lib/browser');
+
 const roles = require('../data/roles.json');
 
 async function getUserInfos(user, url, langId, logFunction, callbackError, callbackOk) {
