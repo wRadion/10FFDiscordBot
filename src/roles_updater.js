@@ -143,7 +143,7 @@ module.exports = {
         }
       }
 
-      // Remove Verified if new WPM >= 200
+      // Remove Verified if new WPM > old WPM
       const wpmRoles = [];
       if (norm >= 20) {
         for (let role of rolesToUpdate.toAdd) {
