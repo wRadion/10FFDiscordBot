@@ -37,7 +37,17 @@ Because of server limitations, the command works with a **queue system**. The bo
 
 ## Identification
 
-If your Discord username is not exactly the same as your 10FF username, you will need to put your Discord full tag (e.g. __Discord#0000__) in your 10FF **description** so the bot will be able to see that it's **your** profile.
+You will need to put your **Discord Tag** (e.g. **Discord#0000**) OR **Discord ID** in your 10FF Profile **description** so the bot will be able to check that it's your profile.
+
+Don't worry, your Discord ID is not a sensitive data to share. Everyone can have it.
+
+To get your Discord ID, just right-click your name on Discord and click "**Copy ID**".
+
+![CopyID](./README/copy_id.png)
+
+If the **Copy ID** button is not present, you will have the enable the **Developer Mode** (_Settings > Appearance > Advanced > Developer Mode_).
+
+![DeveloperMode](./README/developer_mode.png)
 
 ## Roles
 
