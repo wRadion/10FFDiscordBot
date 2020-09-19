@@ -7,6 +7,7 @@
 4. [Roles](#roles)
     - [Roles Removal](#roles-removal)
     - [WPM Roles](#wpm-roles)
+      - [Competitions](#competitions)
       - [Language](#language)
     - [10FF Supporter, Site Translator and Completionist](#10ff-supporter-site-translator-and-completionist)
     - [Multilingual](#multilingual-) :keyboard:
@@ -58,17 +59,21 @@ The bot can **remove** a role from you if your profile don't meet the new requir
 
 ### WPM roles
 
-If you're not happy with your WPM roles (if you wish to use your average instead of your max), you can add your requested roles for normal and advanced:
+If you're not happy with your WPM roles (if you wish to use your average instead of your max), you can specify your requested roles for normal and advanced:
 ```
 !roles https://10fastfingers.com/user/209050/ 150 130
 ```
 Even though I can have the **170-179 WPM** and the **140-149 WPM (Advanced)** roles with the max detected scores, the command above will give me the **150-159 WPM** and **130-139 WPM (Advanced)** roles.
 
-Obviously, you can't request a WPM role that is higher that your highest score. The bot only sees your last 400 tests in normal+advanced.
+Obviously, you can't request a WPM role that is higher that your highest score. The bot only sees your last **400 tests** (normal and advanced).
+
+#### Competitions
+
+For now, the competitions are not read by the bot. But it will be possible to specify a competition URL if you did your record there.
 
 #### Language
 
-If your main language (the language in which you did the most tests) is not the language you wish to use for your WPM roles, you can add it to the command:
+If your main language (the language in which you did the most tests) is not the language you wish to use for your WPM roles, you can specify it in the command:
 ```
 !roles https://10fastfingers.com/user/209050/ english
 ```
