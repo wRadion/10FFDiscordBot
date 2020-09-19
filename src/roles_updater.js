@@ -21,7 +21,7 @@ async function getUserInfos(user, url, langId, logFunction, callbackError, callb
   // Check if the profile is owned by the user
   if (!process.env.DEBUG && username !== user.username && !description.match(user.tag)) {
     await browser.close();
-    callbackError(`Couldn't verify your identity Please write your full Discord tag (**${user.tag}**) in your 10FF description and retry.`);
+    callbackError(`Couldn't verify your identity. Please write your full Discord tag (**${user.tag}**) in your 10FF profile **description** and retry.`);
     return;
   }
 
@@ -64,6 +64,8 @@ async function getUserInfos(user, url, langId, logFunction, callbackError, callb
     userInfos.multilingual = data.languages_sorted.filter(a => parseInt(a['0'].anzahl) >= 50).length >= 10;
 
     // Get Max Competition score
+    // TODO: Add the possibility to use a specific compet for the record
+    /*
     let maxCompetWpm = 0;
 
     const rows = await page.$$('#recent-competitions tr');
@@ -75,9 +77,10 @@ async function getUserInfos(user, url, langId, logFunction, callbackError, callb
       const competWpm = parseInt(await competPage.$(`tr[user_id='${userId}'] .wpm`, n => n.innerText));
       if (competWpm > maxCompetWpm) maxCompetWpm = competWpm;
     }
+    */
 
     // Set max WPMs user infos
-    userInfos.maxNorm = Math.max(maxNorm, maxCompetWpm);
+    userInfos.maxNorm = maxNorm;
     userInfos.maxAdv = maxAdv;
 
     // Close browser and call callback
@@ -120,10 +123,18 @@ module.exports = {
       const newRoles = [];
 
       // WPM roles
-      newRoles.push(norm > 0 ? roles.norm[`${norm*10}-${(norm*10)+9}`] : null);
-      newRoles.push(adv > 0 ? roles.adv[`${adv*10}-${(adv*10)+9}`] : null);
-      oldRoles.push(Object.values(roles.norm).find(role => currentRoles.includes(role)));
+      newRoles.push(norm > 0 ? roles.norm[`${norm * 10}-${(norm * 10) + 9}`] : null);
+      newRoles.push(adv > 0 ? roles.adv[`${adv * 10}-${(adv * 10) + 9}`] : null);
+      const oldNormRoleIndex = Object.values(roles.norm).findIndex(role => currentRoles.includes(role));
+      const oldAdvRoleIndex = Object.values(roles.adv).findIndex(role => currentRoles.includes(role));
+      oldRoles.push(oldNormRoleIndex > -1 ? Object.values(roles.norm)[oldNormRoleIndex] : null);
       oldRoles.push(Object.values(roles.adv).find(role => currentRoles.includes(role)));
+
+      // Remove Verified if new WPM > old WPM
+      const oldNormWpm = oldNormRoleIndex > -1 ? parseInt(Object.keys(roles.norm)[oldNormRoleIndex].split('-')[0]) : 0;
+      const oldAdvWpm = oldAdvRoleIndex > -1 ? parseInt(Object.keys(roles.adv)[oldAdvRoleIndex].split('-')[0]) : 0;
+      const removeVerified = currentRoles.includes(roles.verified) && ((norm * 10) > oldNormWpm || (adv * 10) > oldAdvWpm);
+      if (removeVerified) rolesToUpdate.toRemove.push(roles.verified);
 
       // Tests/Compets Taken roles
       userInfos.testsTaken = userInfos.testsTaken > 10000 ? 10000 : Math.floor(userInfos.testsTaken / 2500) * 2500;
@@ -143,7 +154,7 @@ module.exports = {
         }
       }
 
-      // Remove Verified if new WPM > old WPM
+      // Warn moderators if new WPM > 200
       const wpmRoles = [];
       if (norm >= 20) {
         for (let role of rolesToUpdate.toAdd) {
@@ -157,12 +168,7 @@ module.exports = {
           if (wpmAdvRoleIndex >= 0) wpmRoles.push(`${Object.keys(roles.adv)[wpmAdvRoleIndex]} WPM (Advanced)`)
         }
       }
-      if (wpmRoles.length > 0) {
-        const removeVerified = currentRoles.includes(roles.verified);
-        if (removeVerified) rolesToUpdate.toRemove.push(roles.verified);
-        // Warn Moderators of 200+ WPM roles
-        callbackWarn(userInfos.maxNorm, userInfos.maxAdv, wpmRoles, removeVerified);
-      }
+      if (wpmRoles.length > 0) callbackWarn(userInfos.maxNorm, userInfos.maxAdv, wpmRoles, removeVerified);
 
       // Specials Roles
       function specialRole(boolean, role) {

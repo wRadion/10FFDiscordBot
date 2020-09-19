@@ -2,13 +2,17 @@
 
 ## Index
 1. [Summary](#summary)
-2. [Identification](#identification)
-3. [Roles](#roles)
+2. [Request Queue](#request-queue)
+3. [Identification](#identification)
+4. [Roles](#roles)
+    - [Roles Removal](#roles-removal)
+    - [WPM Roles](#wpm-roles)
+      - [Language](#language)
+    - [10FF Supporter, Site Translator and Completionist](#10ff-supporter-site-translator-and-completionist)
+    - [Multilingual](#multilingual-) :keyboard:
     - [Verified](#verified-) ✅
-4. [Additional Information](#additional-information)
-    - [Language](#language)
-    - [Maximum WPM](#maximum-wpm)
-5. [Bug, issues, suggestions](#bug-issues-suggestions)
+5. [Known Issues](#known-issues)
+6. [Bug, issues, suggestions](#bug-issues-suggestions)
 
 ## Summary
 
@@ -24,9 +28,15 @@ Example:
 
 The command only works in the **#role-requests** channel.
 
+Please be patient with the bot. A single request can take up to 20 or 30 seconds.
+
+## Request Queue
+
+Because of server limitations, the command works with a **queue system**. The bot will tell you the position you are in, and it will send a message whenever your request is being processed.
+
 ## Identification
 
-If your Discord username is not exactly the same as your 10FF username, you will need to put your Discord full tag (e.g. __Discord#0000__) in your 10FF description so the bot will be able to see that it's **your** profile.
+If your Discord username is not exactly the same as your 10FF username, you will need to put your Discord full tag (e.g. __Discord#0000__) in your 10FF **description** so the bot will be able to see that it's **your** profile.
 
 ## Roles
 
@@ -42,20 +52,21 @@ Plus **Tests Taken** roles.
 
 Plus **Competitions Taken** roles.
 
-### Verified ✅
+### Roles Removal
 
-If you reach 200+ WPM in normal or advanced, the bot will automatically remove your **Verified ✅** role (if you have one).
-A Discord moderator will have to check manually your new speed to (re)add the role.
+The bot can **remove** a role from you if your profile don't meet the new requirements.
 
-## Additional Information
+### WPM roles
 
-If you're not happy with your max scores (you think it's too high, or you wish to use your average), you can add your requested roles for normal and advanced:
+If you're not happy with your WPM roles (if you wish to use your average instead of your max), you can add your requested roles for normal and advanced:
 ```
 !roles https://10fastfingers.com/user/209050/ 150 130
 ```
 Even though I can have the **170-179 WPM** and the **140-149 WPM (Advanced)** roles with the max detected scores, the command above will give me the **150-159 WPM** and **130-139 WPM (Advanced)** roles.
 
-### Language
+Obviously, you can't request a WPM role that is higher that your highest score. The bot only sees your last 400 tests in normal+advanced.
+
+#### Language
 
 If your main language (the language in which you did the most tests) is not the language you wish to use for your WPM roles, you can add it to the command:
 ```
@@ -64,12 +75,27 @@ If your main language (the language in which you did the most tests) is not the 
 
 Currently, all languages are supported except for **Chinese (Traditional)** and **Chinese (Simplified)**.
 
-### Maximum WPM
+### 10FF Supporter, Site Translator and Completionist
 
-Obviously, you can't request a WPM role that is higher that your highest score. The bot only sees your last 400 tests in normal+advanced, plus your lasts 10 competitions.
+The bot will check if you have the achievement corresponding to the role.
 
-For competitions, the bot will only pick the competitions in your main language. For example, if you have 4 competitions in your main language in the last 10 competitions, the bot will only see those 4 competitions.
+### Multilingual :keyboard:
+
+The condition to have the **Multilingual :keyboard:** role is as follows: you need to have at least **50 tests** in **10 languages**.
+
+### Verified ✅
+
+If you have the **Verified ✅** role and your new WPM (normal or advanced) is higher, the bot will automatically remove your **Verified ✅** role.
+
+Someone will have to check manually your new speed to (re)add you the role.
+
+## Known issues
+
+- If you have a WPM role (ex 150-159 WPM) and you do 400+ tests between 140-149 WPM, your 150-159 WPM role will be replaced by 140-149 WPM
+- In some cases, the bot says that it added/removed roles, but you still have your old roles, just type the command again (and delete your old command message)
+- You can ask a friend to add your Discord tag in his description to have his roles (please don't do that...)
+- Sometimes the bot message is stuck on "_Please wait..._" (for more than 1 or 2 minutes), just type the command again (and delete your old command message)
 
 ## Bug, issues, suggestions
 
-If you have any problem with the bot please feel free to report the bugs to me on Discord (**wRadion#5043**) or by email [me@wradion.dev](mailto:me@wradion.dev). You can also find me on the official 10FF Discord. 
+If you have any problem with the bot please feel free to report the bugs to me on Discord (**wRadion#5043**) or by email [me@wradion.dev](mailto:me@wradion.dev). You can also find me on the official 10FF Discord.

@@ -41,12 +41,15 @@ module.exports = {
     await rolesUpdater.getRolesToUpdate(user, member, url, langId, norm, adv, logFunction,
       // callback Error
       async error => {
+        logFunction(`Error: ${error}`);
         await botMessage.edit({
           embed: {
             color: colors.error,
             description: `:x: **Error:** ${error}`
           }
         });
+        logFunction(`Done (${(Date.now() - startTime)/1000} sec)`);
+        await message.react('❌');
         callback();
       },
       // callback Warn
@@ -59,7 +62,7 @@ module.exports = {
           if (!dm) dm = await moderatorMember.createDM();
           dm.send(
             (process.env.DEBUG ? '**This is a DEBUG message, please ignore it**\n\n' : '') +
-            `:warning: Headsup, **${moderatorUser.username}**!\n\n` +
+            `:warning: Heads up, **${moderatorUser.username}**!\n\n` +
             `User **${user.tag}** (__${member.nickname || user.username}__) updated his WPM roles.\n` +
             `Here is the 10FF profile link he provided: ${url}\n` +
             `His max detected WPMs are **${maxNorm} WPM** and **${maxAdv} WPM (Advanced)**.\n` +

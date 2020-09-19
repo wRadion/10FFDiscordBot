@@ -93,6 +93,7 @@ client.on('message', async (message) => {
         description: `:x: **Error:** ${reason}!`
       }
     });
+    await message.react('❌');
     return;
   }
 
