@@ -35,6 +35,7 @@ module.exports = {
 
     // Setup log function
     function logFunction(msg) { console.log(`[${requester.username}] ${msg}`); }
+    logFunction('Processing request...');
 
     // Get roles (ids) to add/remove
     await rolesUpdater.getRolesToUpdate(user, member, url, langId, norm, adv, logFunction,
@@ -77,14 +78,22 @@ module.exports = {
         for (let id of roles.toAdd) {
           const role = await server.roles.fetch(id);
           addedRoles.push(role.name);
-          if (!process.env.DEBUG) await member.roles.add(role, `Added by Roles Request Bot`);
+          if (!process.env.DEBUG) {
+            member.roles.add(id, `Added by Roles Request Bot`).then(() => {
+              logFunction(`Role '${role.name}' was given to ${user.tag}`);
+            });
+          }
         }
 
         // Remove roles to remove
         for (let id of roles.toRemove) {
           const role = await server.roles.fetch(id);
           removedRoles.push(role.name);
-          if (!process.env.DEBUG) await member.roles.remove(role, `Removed by Roles Request Bot`);
+          if (!process.env.DEBUG) {
+            await member.roles.remove(id, `Removed by Roles Request Bot`).then(() => {
+              logFunction(`Role '${role.name}' was removed from ${user.tag}`);
+            });
+          }
         }
 
         if (addedRoles.length > 0 || removedRoles.length > 0) {

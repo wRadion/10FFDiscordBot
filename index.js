@@ -47,7 +47,7 @@ client.on('message', async (message) => {
   }
 
   // Set DEBUG flag
-  process.env.DEBUG = command === '!rolesdebug';
+  if (command === '!rolesdebug') process.env.DEBUG = true;
 
   // Init command
   let url, language, norm, adv;
