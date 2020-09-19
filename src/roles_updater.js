@@ -15,11 +15,10 @@ async function getUserInfos(user, url, langId, logFunction, callbackError, callb
   await page.goto(url);
 
   // Get 10FF username and description
-  const username = await page.$('#main-content > div > h2', n => n.innerText.split(':')[1].trim());
   const description = await page.$('#profile-description', n => n.innerText);
 
   // Check if the profile is owned by the user
-  if (!process.env.DEBUG && username !== user.username && !description.match(user.tag)) {
+  if (!process.env.DEBUG && !description.match(user.tag)) {
     await browser.close();
     callbackError(`Couldn't verify your identity. Please write your full Discord tag (**${user.tag}**) in your 10FF profile **description** and retry.`);
     return;
