@@ -10,7 +10,7 @@
       - [Competitions](#competitions)
       - [Language](#language)
     - [10FF Supporter, Site Translator and Completionist](#10ff-supporter-site-translator-and-completionist)
-    - [Multilingual](#multilingual-) :keyboard:
+    - [Multilingual](#multilingual-keyboard) :keyboard:
     - [Verified](#verified-) ✅
 5. [Known Issues](#known-issues)
 6. [Bug, issues, suggestions](#bug-issues-suggestions)
