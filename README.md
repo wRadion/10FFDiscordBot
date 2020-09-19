@@ -110,6 +110,7 @@ Someone will have to check manually your new speed to (re)add you the role.
 - In some cases, the bot says that it added/removed roles, but you still have your old roles, just type the command again (and delete your old command message)
 - You can ask a friend to add your Discord tag in his description to have his roles (please don't do that...)
 - Sometimes the bot message is stuck on "_Please wait..._" (for more than 1 or 2 minutes), just type the command again (and delete your old command message)
+- Some invalid arguments just crash the bot. In that case, I have to manually restart the bot. I'll try to look in the **#role-requests** channel regularly
 
 ## Bug, issues, suggestions
 
