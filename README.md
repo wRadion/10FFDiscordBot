@@ -1,6 +1,10 @@
 # 10FF Roles Request Bot
 
-# This bot only gives the WPM, the achievements (Supporter, Translator, Completionist) and the Multilingual role automatically using your 10FF profile page. If you wish to submit a video to have the Verified ✅ role, don't use the command and wait for a moderator. If you want to have the self assignable roles (qwerty, 10 fingers, ...) go to the #self-assignable-roles channel.
+# This bot only gives the WPM, the achievements (Supporter, Translator, Completionist) and the Multilingual role automatically using your 10FF profile page.
+
+# If you wish to submit a video to have the Verified ✅ role, don't use the command: send a message with your 10FF profile and a link to the video, and wait for a moderator.
+
+# If you want to have the self assignable roles (qwerty, 10 fingers, ...) go to the #self-assignable-roles channel.
 
 ## Index
 1. [Summary](#summary)
