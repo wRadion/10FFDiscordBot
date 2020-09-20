@@ -45,7 +45,8 @@ module.exports = {
         await botMessage.edit({
           embed: {
             color: colors.error,
-            description: `:x: **Error:** ${error}`
+            description: `:x: **Error:** ${error}\n\n` +
+              `Please read https://github.com/wRadion/10FFDiscordBot for more help.`
           }
         });
         logFunction(`Done (${(Date.now() - startTime)/1000} sec)`);

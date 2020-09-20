@@ -90,7 +90,8 @@ client.on('message', async (message) => {
     await send({
       embed: {
         color: colors.error,
-        description: `:x: **Error:** ${reason}!`
+        description: `:x: **Error:** ${reason}!\n\n` +
+          `Please read https://github.com/wRadion/10FFDiscordBot for more help.`
       }
     });
     await message.react('❌');
