@@ -30,6 +30,7 @@ client.on('message', async (message) => {
       message.channel.send('Bot is now enabled.');
       return;
     }
+    if (process.env.NODE_ENV === 'production') return;
   }
   else if (process.env.NODE_ENV !== 'production' || message.channel.id !== config.roleRequestChannelId) return;
 
@@ -52,6 +53,7 @@ client.on('message', async (message) => {
   // Init command
   let url, language, norm, adv;
   let overrideUser = null;
+  let error = null;
 
   // Automatic params assignment
   for (const arg of args) {
@@ -62,21 +64,18 @@ client.on('message', async (message) => {
     } else if (arg.match(/^\d{1,3}$/)) {
       if (!norm) norm = parseInt(arg);
       else if (!adv) adv = parseInt(arg);
-      else { /* Error */ }
+      else error = `Unrecognized command argument: '${arg}'`;
     } else if (arg.match(/^\d{10,}$/) && process.env.DEBUG) {
       overrideUser = (await server.members.fetch(arg)).user;
-    } else {
-      // Error
-    }
+    } else error = `Unrecognized command argument: '${arg}'`;
   }
 
   // Params validation
-  let reason = null;
-  while (true) {
-    if (!url) { reason = "Invalid or missing 10FF Profile URL"; break; }
-    if (language && !languages.includes(language)) { reason = `Language \`${language}\` doesn't exist or is not supported`; break; }
-    if (0 > norm || norm >= 250) { reason = 'Normal WPM should be between 0 and 250'; break; }
-    if (0 > adv || adv >= 220) { reason = 'Advanced WPM should be between 0 and 220'; break; }
+  while (!error) {
+    if (!url) error = "Invalid or missing 10FF Profile URL";
+    if (language && !languages.includes(language)) error = `Language \`${language}\` doesn't exist or is not supported`;
+    if (0 > norm || norm >= 250) error = 'Normal WPM should be between 0 and 250';
+    if (0 > adv || adv >= 220) error = 'Advanced WPM should be between 0 and 220';
     break;
   };
 
@@ -86,11 +85,11 @@ client.on('message', async (message) => {
   async function send(msg) { return await dm.send(msg); }
 
   // Display error and return if any
-  if (reason) {
+  if (error) {
     await send({
       embed: {
         color: colors.error,
-        description: `:x: **Error:** ${reason}!\n\n` +
+        description: `:x: **Error:** ${error}.\n\n` +
           `Please read https://github.com/wRadion/10FFDiscordBot for more help.`
       }
     });
@@ -120,4 +119,4 @@ client.on('message', async (message) => {
   });
 });
 
-client.login(process.env['DISCORD_BOT_TOKEN']);
+client.login(process.env.DISCORD_BOT_TOKEN);
