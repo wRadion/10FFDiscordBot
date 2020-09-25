@@ -8,6 +8,10 @@
 
 ## If you want to have the self assignable roles (Qwerty, 10 Fingers, english, ...) go to the #self-assignable-roles channel.
 
+## Please make sure you can recieve DMs from the bot before doing the command.
+
+![AllowDMs](./README/allow_dms.png)
+
 ## Index
 1. [Summary](#summary)
 2. [Request Queue](#request-queue)
