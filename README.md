@@ -41,7 +41,7 @@ Example:
 
 The command only works in the **#role-requests** channel.
 
-Please be patient with the bot. A single request can take up to 20 or 30 seconds.
+Please be patient with the bot. A single request can take up to 10 or 20 seconds. But, if after this time, nothing happened, it's most likely that the bot crashed. See [Known Issues](#known-issues) for more information.
 
 ## Request Queue
 
@@ -100,7 +100,15 @@ If your main language (the language in which you did the most tests) is not the 
 !roles https://10fastfingers.com/user/209050/ english
 ```
 
-Currently, all languages are supported except for **Chinese (Traditional)** and **Chinese (Simplified)**.
+All languages are now supported.
+
+##### Chinese Traditional & Simplified
+
+For Chinese languages, use `chinese_traditional` or `chinese_simplified` as the language name. The WPM are not calculated the same way as other languages. Your speed role won't be the one displayed on your graph, but rather the "**Correct Words**" value.
+
+##### Japanese
+
+For Japanese language, the bot will only see the tests you did after the WPM calculation was updated (i.e. after the 25 Feb 2019).
 
 ### 10FF Supporter, Site Translator and Completionist
 
@@ -119,11 +127,10 @@ Someone will have to check manually your new speed to (re)add you the role.
 ## Known issues
 
 - If you have a WPM role (ex 150-159 WPM) and you do 400+ tests between 140-149 WPM, your 150-159 WPM role will be replaced by 140-149 WPM
-- In some cases, the bot says that it added/removed roles, but you still have your old roles, just type the command again (and delete your old command message)
+- In some cases, the bot says that it added/removed roles, but you still have your old roles. You have to wait a bit, it can take up to 1 minute before having your roles.
 - You can ask a friend to add your Discord tag in his description to have his roles (please don't do that...)
-- Sometimes the bot message is stuck on "_Please wait..._" (for more than 1 or 2 minutes), just type the command again (and delete your old command message)
 - Some invalid arguments just crash the bot. In that case, I have to manually restart the bot. I'll try to look in the **#role-requests** channel regularly but eventually this issue will be fixed
-- If you have DMs from Server members disabled, the bot will crash
+- **If you have DMs from Server members disabled, the bot will crash**
 
 ## Bug, issues, suggestions
 
