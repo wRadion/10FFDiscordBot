@@ -20,7 +20,23 @@ module.exports = {
       message = await channel.messages.fetch(messageId);
     }
 
-    async function send(msg) { return await dm.send(msg); }
+    async function send(msg) {
+      try {
+        return await dm.send(msg);
+      } catch {
+        await message.react('🇮');
+        await message.react('🇨');
+        await message.react('🇦');
+        await message.react('🇳');
+        await message.react('🇹');
+        await message.react('🇩');
+        await message.react('🇲');
+        await message.react('🇾');
+        await message.react('🇴');
+        await message.react('🇺');
+        return null;
+      }
+    }
 
     // Command execution
     let botMessage = await send({
@@ -42,13 +58,15 @@ module.exports = {
       // callback Error
       async error => {
         logFunction(`Error: ${error}`);
-        await botMessage.edit({
-          embed: {
-            color: colors.error,
-            description: `:x: **Error:** ${error}\n\n` +
-              `Please read https://github.com/wRadion/10FFDiscordBot for more help.`
-          }
-        });
+        if (botMessage) {
+          await botMessage.edit({
+            embed: {
+              color: colors.error,
+              description: `:x: **Error:** ${error}\n\n` +
+                `Please read https://github.com/wRadion/10FFDiscordBot for more help.`
+            }
+          });
+        }
         logFunction(`Done (${(Date.now() - startTime)/1000} sec)`);
         await message.react('❌');
         callback();
@@ -94,7 +112,7 @@ module.exports = {
           const role = await server.roles.fetch(id);
           removedRoles.push(role.name);
           if (!process.env.DEBUG && process.env.NODE_ENV === "production") {
-            await member.roles.remove(id, `Removed by Roles Request Bot`).then(() => {
+            member.roles.remove(id, `Removed by Roles Request Bot`).then(() => {
               logFunction(`Role '${role.name}' was removed from ${user.tag}`);
             });
           }
@@ -102,23 +120,27 @@ module.exports = {
 
         if (addedRoles.length > 0 || removedRoles.length > 0) {
           // If there are roles added/removed
-          await botMessage.edit({
-            embed: {
-              color: colors.success,
-              description:
-                `:white_check_mark: **Success!**\n\n` +
-                (addedRoles.length > 0 ? `The following roles were __added__:\n${addedRoles.map(r => `- **${r}**`).join('\n')}\n\n` : '') +
-                (removedRoles.length > 0 ? `The following roles were __removed__:\n${removedRoles.map(r => `- **${r}**`).join('\n')}` : '')
-            }
-          });
+          if (botMessage) {
+            await botMessage.edit({
+              embed: {
+                color: colors.success,
+                description:
+                  `:white_check_mark: **Success!**\n\n` +
+                  (addedRoles.length > 0 ? `The following roles were __added__:\n${addedRoles.map(r => `- **${r}**`).join('\n')}\n\n` : '') +
+                  (removedRoles.length > 0 ? `The following roles were __removed__:\n${removedRoles.map(r => `- **${r}**`).join('\n')}` : '')
+              }
+            });
+          }
         } else {
           // Else if there are no roles to add/remove
-          await botMessage.edit({
-            embed: {
-              color: colors.info,
-              description: ":information_source: Your roles are up to date! _(No roles to add or remove)_"
-            }
-          });
+          if (botMessage) {
+            await botMessage.edit({
+              embed: {
+                color: colors.info,
+                description: ":information_source: Your roles are up to date! _(No roles to add or remove)_"
+              }
+            });
+          }
         }
 
         logFunction(`Done (${(Date.now() - startTime)/1000} sec)`);
