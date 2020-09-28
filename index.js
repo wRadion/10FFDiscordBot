@@ -35,7 +35,7 @@ client.on('message', async (message) => {
   else if (process.env.NODE_ENV !== 'production' || message.channel.id !== config.roleRequestChannelId) return;
 
   // Get Command name and Args
-  const args = message.content.split(' ');
+  const args = message.content.split(/\s+/);
   const command = args.shift();
 
   // Command `role`

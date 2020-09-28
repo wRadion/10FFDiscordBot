@@ -82,7 +82,7 @@ module.exports = {
         for (let id of roles.toAdd) {
           const role = await server.roles.fetch(id);
           addedRoles.push(role.name);
-          if (!process.env.DEBUG) {
+          if (!process.env.DEBUG && process.env.NODE_ENV === "production") {
             member.roles.add(id, `Added by Roles Request Bot`).then(() => {
               logFunction(`Role '${role.name}' was given to ${user.tag}`);
             });
@@ -93,7 +93,7 @@ module.exports = {
         for (let id of roles.toRemove) {
           const role = await server.roles.fetch(id);
           removedRoles.push(role.name);
-          if (!process.env.DEBUG) {
+          if (!process.env.DEBUG && process.env.NODE_ENV === "production") {
             await member.roles.remove(id, `Removed by Roles Request Bot`).then(() => {
               logFunction(`Role '${role.name}' was removed from ${user.tag}`);
             });

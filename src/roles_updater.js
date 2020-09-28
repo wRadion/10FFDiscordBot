@@ -1,3 +1,4 @@
+const fs = require('fs');
 const Browser = require('../lib/browser');
 
 const roles = require('../data/roles.json');
@@ -14,6 +15,11 @@ async function getUserInfos(user, url, langId, logFunction, callbackError, callb
   const page = await browser.newPage();
   await page.goto(url);
 
+  // Accept Cookies
+  try {
+    await page.click('#CybotCookiebotDialogBodyLevelButtonAcceptWrapper');
+  } catch {}
+
   // Get 10FF username and description
   const description = await page.$('#profile-description', n => n.innerText);
 
@@ -26,6 +32,7 @@ async function getUserInfos(user, url, langId, logFunction, callbackError, callb
 
   // Click the Fullscreen button (top-right of the graph)
   await page.click('#graph-fullscreen');
+  await page.waitForSelector('#graph-flag-selection-fullscreen');
 
   // Get the main language if langId is not given
   if (langId < 0) langId = parseInt(await page.$('span.flag.active', n => n['id'].substring(6)));
@@ -48,16 +55,24 @@ async function getUserInfos(user, url, langId, logFunction, callbackError, callb
   userInfos.testsTaken = parseInt(await dataTable[13].evaluate(h => h.innerText.split(',').join('')));
   userInfos.competsTaken = parseInt(await dataTable[15].evaluate(h => h.innerText.split(',').join('')));
 
-  // Wait 500ms
-  await page.wait(500);
-
   // Listen for the API response to get the max norm/adv WPM
   page.on('response', async (res) => {
     if (res.request().url() !== `https://10fastfingers.com/users/get_graph_data/1/${userId}/${langId}`) return;
 
     // Get Max Norm/Adv score (last 400 tests)
     const data = await res.json();
-    const [maxNorm, maxAdv] = [data.max_norm, data.max_adv].map(Number);
+    let [maxNorm, maxAdv] = [data.max_norm, data.max_adv].map(Number);
+
+    // Chinese traditional/simplified
+    if (langId === 15 || langId === 16) {
+      maxNorm = Math.max(...data.graph_data.filter(s => !!s.g1).map(s => parseInt(s.correct_words)));
+      maxAdv = Math.max(...data.graph_data.filter(s => !!s.g2).map(s => parseInt(s.correct_words)));
+    } // Japanese
+    else if (langId === 29) {
+      const japaneseDate = new Date("2019-02-25 00:00:00");
+      maxNorm = Math.max(...data.graph_data.filter(s => !!s.g1 && new Date(s.date) > japaneseDate).map(s => parseInt(s.g1)))
+      maxAdv = Math.max(...data.graph_data.filter(s => !!s.g2 && new Date(s.date) > japaneseDate).map(s => parseInt(s.g2)))
+    }
 
     // Check Multilingual
     userInfos.multilingual = data.languages_sorted.filter(a => parseInt(a['0'].anzahl) >= 50).length >= 10;
