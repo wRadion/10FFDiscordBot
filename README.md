@@ -8,6 +8,10 @@
 
 ## If you want to have the self assignable roles (Qwerty, 10 Fingers, english, ...) go to the #self-assignable-roles channel.
 
+## Please make sure you can recieve DMs from the bot before doing the command.
+
+![AllowDMs](./README/allow_dms.png)
+
 ## Index
 1. [Summary](#summary)
 2. [Request Queue](#request-queue)
@@ -119,6 +123,7 @@ Someone will have to check manually your new speed to (re)add you the role.
 - You can ask a friend to add your Discord tag in his description to have his roles (please don't do that...)
 - Sometimes the bot message is stuck on "_Please wait..._" (for more than 1 or 2 minutes), just type the command again (and delete your old command message)
 - Some invalid arguments just crash the bot. In that case, I have to manually restart the bot. I'll try to look in the **#role-requests** channel regularly but eventually this issue will be fixed
+- If you have DMs from Server members disabled, the bot will crash
 
 ## Bug, issues, suggestions
 
