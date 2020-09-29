@@ -24,16 +24,7 @@ module.exports = {
       try {
         return await dm.send(msg);
       } catch {
-        await message.react('🇮');
-        await message.react('🇨');
-        await message.react('🇦');
-        await message.react('🇳');
-        await message.react('🇹');
-        await message.react('🇩');
-        await message.react('🇲');
-        await message.react('🇾');
-        await message.react('🇴');
-        await message.react('🇺');
+        await message.react('💬');
         return null;
       }
     }
@@ -56,7 +47,7 @@ module.exports = {
     // Get roles (ids) to add/remove
     await rolesUpdater.getRolesToUpdate(user, member, url, langId, norm, adv, logFunction,
       // callback Error
-      async error => {
+      async (error, emoji = null) => {
         logFunction(`Error: ${error}`);
         if (botMessage) {
           await botMessage.edit({
@@ -68,6 +59,7 @@ module.exports = {
           });
         }
         logFunction(`Done (${(Date.now() - startTime)/1000} sec)`);
+        if (emoji) await message.react(emoji);
         await message.react('❌');
         callback();
       },

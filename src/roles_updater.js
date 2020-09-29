@@ -26,7 +26,9 @@ async function getUserInfos(user, url, langId, logFunction, callbackError, callb
   // Check if the profile is owned by the user
   if (!process.env.DEBUG && !description.match(user.tag) && !description.match(user.id)) {
     await browser.close();
-    callbackError(`Couldn't verify your identity. Please write your Discord tag (**${user.tag}**) OR your Discord ID (**${user.id}**) in your 10FF profile **description** and retry.`);
+    callbackError(
+      `Couldn't verify your identity. Please write your Discord tag (**${user.tag}**) OR your Discord ID (**${user.id}**) in your 10FF profile **description** and retry.`,
+      '👤');
     return;
   }
 
@@ -119,10 +121,10 @@ module.exports = {
 
       // Check requested norm/adv WPM with max scores
       if (norm > userInfos.maxNorm) {
-        callbackError(`You can't have the **${norm}-${norm+9} WPM** role as your detected max normal WPM is **${userInfos.maxNorm} WPM**.`);
+        callbackError(`You can't have the **${norm}-${norm+9} WPM** role as your detected max normal WPM is **${userInfos.maxNorm} WPM**.`, '🚫');
         return;
       } else if (adv > userInfos.maxAdv) {
-        callbackError(`You can't have the **${adv}-${adv+9} WPM (Advanced)** role as your detected max advanced WPM is **${userInfos.maxAdv} WPM**.`);
+        callbackError(`You can't have the **${adv}-${adv+9} WPM (Advanced)** role as your detected max advanced WPM is **${userInfos.maxAdv} WPM**.`, '🚫');
         return;
       }
 
