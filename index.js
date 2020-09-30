@@ -21,7 +21,7 @@ client.on('ready', async () => {
 client.on('message', async (message) => {
   let user = message.author;
 
-  if ([config.wradionId, ...Object.values(config.moderators)].includes(user.id)) {
+  if (message.channel.type === 'dm' && [config.wradionId, ...Object.values(config.moderators)].includes(user.id)) {
     if (message.content === 'disable') {
       await channel.send({
         embed: {
@@ -43,7 +43,7 @@ client.on('message', async (message) => {
     }
     if (process.env.NODE_ENV === 'production') return;
   }
-  else if (process.env.NODE_ENV !== 'production' || (message.channel.id !== config.channelId && message.channel.id !== config.roleRequestChannelId)) {
+  else if (process.env.NODE_ENV !== 'production' || (message.channel.id !== config.channelId && message.channel.id !== config.rolesRequestChannelId)) {
     return;
   }
 
@@ -69,7 +69,7 @@ client.on('message', async (message) => {
   }
 
   // Wrong channel!
-  if (message.channel.id === config.roleRequestChannelId) {
+  if (message.channel.id === config.rolesRequestChannelId) {
     await send({
       embed: {
         color: colors.error,
