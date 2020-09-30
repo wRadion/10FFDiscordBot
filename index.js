@@ -124,7 +124,7 @@ client.on('message', async (message) => {
   // Add command to queue
   const request = {
     requesterId: user.id,
-    userId: overrideUser ? overrideUser.id : user.id,
+    userId: user.id,
     messageId: message.id,
     isDm: message.channel.type === 'dm',
     url: url,
