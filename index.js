@@ -8,56 +8,87 @@ const languages = require('./data/languages.json');
 const colors = require('./data/colors.json');
 
 let server;
-let enabled = true;
 let queue;
+let channel;
 
 client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
   server = await client.guilds.fetch(config.guildId);
   queue = new RequestQueue(server);
+  channel = server.channels.resolve(config.channelId);
 });
 
 client.on('message', async (message) => {
   let user = message.author;
 
-  if (message.channel.type === 'dm' && [config.wradionId, ...Object.values(config.moderators)].includes(user.id)) {
+  if ([config.wradionId, ...Object.values(config.moderators)].includes(user.id)) {
     if (message.content === 'disable') {
-      enabled = false;
-      message.channel.send('Bot is now disabled.');
+      await channel.send({
+        embed: {
+          color: colors.warning,
+          description: '⚠ Bot is now disabled due to maintenance.'
+        }
+      });
+      await channel.updateOverwrite(server.roles.everyone, { SEND_MESSAGES: false });
       return;
     } else if (message.content === 'enable') {
-      enabled = true;
-      message.channel.send('Bot is now enabled.');
+      await channel.updateOverwrite(server.roles.everyone, { SEND_MESSAGES: null });
+      await channel.send({
+        embed: {
+          color: colors.success,
+          description: ':white_check_mark: Bot is now enabled!'
+        }
+      });
       return;
     }
     if (process.env.NODE_ENV === 'production') return;
   }
-  else if (process.env.NODE_ENV !== 'production' || message.channel.id !== config.roleRequestChannelId) return;
+  else if (process.env.NODE_ENV !== 'production' || (message.channel.id !== config.channelId && message.channel.id !== config.roleRequestChannelId)) {
+    return;
+  }
 
   // Get Command name and Args
   const args = message.content.split(/\s+/);
   const command = args.shift();
 
-  // Command `role`
-  if (command !== '!roles' && command !== '!rolesdebug') return;
-  console.debug(`User ${user.username} issued command \`${message}\``);
+  // Create DM channel if needed
+  let dm = user.dmChannel;
+  if (!dm) dm = await (await server.members.fetch(user.id)).createDM();
+  async function send(msg) { return await dm.send(msg); }
 
-  if (!enabled) {
-    console.log('Bot is disabled.');
+  // Command `!roles`
+  if (command !== '!roles') {
+    await send({
+      embed: {
+        color: colors.error,
+        description: `:no_entry: You must only use the \`!roles\` command inside the ${channel} channel.`
+      }
+    });
+    await message.delete();
     return;
   }
 
-  // Set DEBUG flag
-  if (command === '!rolesdebug') process.env.DEBUG = true;
+  // Wrong channel!
+  if (message.channel.id === config.roleRequestChannelId) {
+    await send({
+      embed: {
+        color: colors.error,
+        description: `:no_entry: You must use the \`!roles\` command inside the ${channel} channel.`
+      }
+    });
+    await message.delete();
+    return;
+  }
+
+  console.debug(`User ${user.username} issued command \`${message}\``);
 
   // Init command
   let url, language, norm, adv;
-  let overrideUser = null;
   let error = null;
 
   // Automatic params assignment
   for (const arg of args) {
-    if (arg.match(/https:\/\/10fastfingers\.com\/user\/\d+\/?/)) {
+    if (arg.match(/^https:\/\/10fastfingers\.com\/user\/\d+\/?$/)) {
       url = arg;
     } else if (arg.match(/^[a-zA-Z_]+$/)) {
       language = arg.toLowerCase();
@@ -65,8 +96,6 @@ client.on('message', async (message) => {
       if (!norm) norm = parseInt(arg);
       else if (!adv) adv = parseInt(arg);
       else error = `Unrecognized command argument: '${arg}'`;
-    } else if (arg.match(/^\d{10,}$/) && process.env.DEBUG) {
-      overrideUser = (await server.members.fetch(arg)).user;
     } else error = `Unrecognized command argument: '${arg}'`;
   }
 
@@ -79,11 +108,6 @@ client.on('message', async (message) => {
     break;
   };
 
-  // Create DM channel if needed
-  let dm = user.dmChannel;
-  if (!dm) dm = await (await server.members.fetch(user.id)).createDM();
-  async function send(msg) { return await dm.send(msg); }
-
   // Display error and return if any
   if (error) {
     await send({
@@ -93,7 +117,7 @@ client.on('message', async (message) => {
           `Please read https://github.com/wRadion/10FFDiscordBot for more help.`
       }
     });
-    await message.react('❌');
+    await message.delete();
     return;
   }
 

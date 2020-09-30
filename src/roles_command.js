@@ -20,22 +20,26 @@ module.exports = {
       message = await channel.messages.fetch(messageId);
     }
 
-    async function send(msg) {
-      try {
-        return await dm.send(msg);
-      } catch {
-        await message.react('💬');
-        return null;
-      }
+    // Command execution
+
+    // Send main message
+    let botMessage = null;
+    try {
+      botMessage = await dm.send({
+        embed: {
+          color: colors.waiting,
+          description: `:hourglass: **Processing your request. Please wait...**`
+        }
+      });
+    } catch {
+      // User can't recieve DMs
+      await message.react('💬');
     }
 
-    // Command execution
-    let botMessage = await send({
-      embed: {
-        color: colors.waiting,
-        description: `:hourglass: **Processing your request. Please wait...**`
-      }
-    });
+    async function editMessage(msg) {
+      if (!botMessage) return;
+      await botMessage.edit(msg);
+    }
 
     // Get language id
     const langId = language ? languages.indexOf(language) : -1;
@@ -49,15 +53,13 @@ module.exports = {
       // callback Error
       async (error, emoji = null) => {
         logFunction(`Error: ${error}`);
-        if (botMessage) {
-          await botMessage.edit({
-            embed: {
-              color: colors.error,
-              description: `:x: **Error:** ${error}\n\n` +
-                `Please read https://github.com/wRadion/10FFDiscordBot for more help.`
-            }
-          });
-        }
+        await editMessage({
+          embed: {
+            color: colors.error,
+            description: `:x: **Error:** ${error}\n\n` +
+              `Please read https://github.com/wRadion/10FFDiscordBot for more help.`
+          }
+        });
         logFunction(`Done (${(Date.now() - startTime)/1000} sec)`);
         if (emoji) await message.react(emoji);
         await message.react('❌');
@@ -92,8 +94,8 @@ module.exports = {
         for (let id of roles.toAdd) {
           const role = await server.roles.fetch(id);
           addedRoles.push(role.name);
-          if (!process.env.DEBUG && process.env.NODE_ENV === "production") {
-            member.roles.add(id, `Added by Roles Request Bot`).then(() => {
+          if (process.env.NODE_ENV === "production") {
+            member.roles.add(id, `Added by Auto-Roles Bot`).then(() => {
               logFunction(`Role '${role.name}' was given to ${user.tag}`);
             });
           }
@@ -103,8 +105,8 @@ module.exports = {
         for (let id of roles.toRemove) {
           const role = await server.roles.fetch(id);
           removedRoles.push(role.name);
-          if (!process.env.DEBUG && process.env.NODE_ENV === "production") {
-            member.roles.remove(id, `Removed by Roles Request Bot`).then(() => {
+          if (process.env.NODE_ENV === "production") {
+            member.roles.remove(id, `Removed by Auto-Roles Bot`).then(() => {
               logFunction(`Role '${role.name}' was removed from ${user.tag}`);
             });
           }
@@ -112,27 +114,23 @@ module.exports = {
 
         if (addedRoles.length > 0 || removedRoles.length > 0) {
           // If there are roles added/removed
-          if (botMessage) {
-            await botMessage.edit({
-              embed: {
-                color: colors.success,
-                description:
-                  `:white_check_mark: **Success!**\n\n` +
-                  (addedRoles.length > 0 ? `The following roles were __added__:\n${addedRoles.map(r => `- **${r}**`).join('\n')}\n\n` : '') +
-                  (removedRoles.length > 0 ? `The following roles were __removed__:\n${removedRoles.map(r => `- **${r}**`).join('\n')}` : '')
-              }
-            });
-          }
+          await editMessage({
+            embed: {
+              color: colors.success,
+              description:
+                `:white_check_mark: **Success!**\n\n` +
+                (addedRoles.length > 0 ? `The following roles were __added__:\n${addedRoles.map(r => `- **${r}**`).join('\n')}\n\n` : '') +
+                (removedRoles.length > 0 ? `The following roles were __removed__:\n${removedRoles.map(r => `- **${r}**`).join('\n')}` : '')
+            }
+          });
         } else {
           // Else if there are no roles to add/remove
-          if (botMessage) {
-            await botMessage.edit({
-              embed: {
-                color: colors.info,
-                description: ":information_source: Your roles are up to date! _(No roles to add or remove)_"
-              }
-            });
-          }
+          await editMessage({
+            embed: {
+              color: colors.info,
+              description: ":information_source: Your roles are up to date! _(No roles to add or remove)_"
+            }
+          });
         }
 
         logFunction(`Done (${(Date.now() - startTime)/1000} sec)`);

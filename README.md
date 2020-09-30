@@ -1,16 +1,12 @@
-# 10FF Roles Request Bot
+# 10FF Auto-Roles Bot
 
 # ⚠ Please read:
 
 ## This bot only gives the WPM, the achievements (Supporter, Translator, Completionist) and the Multilingual role automatically using your 10FF profile page.
 
-## If you wish to submit a video to have the Verified ✅ role, don't use the command: send a message with your 10FF profile and a link to the video, and wait for a moderator.
+## If you wish to submit a video to have the Verified ✅ role, don't use the command: send a message with your 10FF profile and a link to the video in the **#roles-request** channel.
 
-## If you want to have the self assignable roles (Qwerty, 10 Fingers, english, ...) go to the #self-assignable-roles channel.
-
-## Please make sure you can recieve DMs from the bot before doing the command.
-
-![AllowDMs](./README/allow_dms.png)
+## If you want to have the self assignable roles (Qwerty, 10 Fingers, english, ...) go to the **#self-assignable-roles** channel.
 
 ## Index
 1. [Summary](#summary)
@@ -25,7 +21,7 @@
     - [Multilingual](#multilingual-keyboard) :keyboard:
     - [Verified](#verified-) ✅
 5. [Known Issues](#known-issues)
-6. [Bug, issues, suggestions](#bug-issues-suggestions)
+6. [Bugs, issues, suggestions](#bugs-issues-suggestions)
 
 ## Summary
 
@@ -39,13 +35,13 @@ Example:
 !roles https://10fastfingers.com/user/209050/
 ```
 
-The command only works in the **#role-requests** channel.
+The command only works in the **#auto-roles** channel.
 
 Please be patient with the bot. A single request can take up to 10 or 20 seconds. But, if after this time, nothing happened, it's most likely that the bot crashed. See [Known Issues](#known-issues) for more information.
 
 ## Request Queue
 
-Because of server limitations, the command works with a **queue system**. The bot will tell you the position you are in, and it will send a message whenever your request is being processed.
+Because of server limitations, the command works with a **queue system**. The bot will tell you the position you are in, and it will send a message whenever your request is being processed. If after 1 min your request is not being processed, try to redo the command or [send me a message](#bugs-issues-suggestions).
 
 ## Identification
 
@@ -126,12 +122,9 @@ Someone will have to check manually your new speed to (re)add you the role.
 
 ## Known issues
 
-- If you have a WPM role (ex 150-159 WPM) and you do 400+ tests between 140-149 WPM, your 150-159 WPM role will be replaced by 140-149 WPM
 - In some cases, the bot says that it added/removed roles, but you still have your old roles. You have to wait a bit, it can take up to 1 minute before having your roles.
 - You can ask a friend to add your Discord tag in his description to have his roles (please don't do that...)
-- Some invalid arguments just crash the bot. In that case, I have to manually restart the bot. I'll try to look in the **#role-requests** channel regularly but eventually this issue will be fixed
-- **If you have DMs from Server members disabled, the bot will crash**
 
-## Bug, issues, suggestions
+## Bugs, issues, suggestions
 
-If you have any problem with the bot please feel free to report the bugs to me on Discord (**wRadion#5043**) or by email [me@wradion.dev](mailto:me@wradion.dev). You can also find me on the official 10FF Discord.
+If you have any problem with the bot please feel free to report the bugs by creating an issue on github or directly to me on Discord (**wRadion#5043**) or by email [me@wradion.dev](mailto:me@wradion.dev). You can also find me on the official 10FF Discord.
