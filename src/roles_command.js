@@ -16,7 +16,7 @@ module.exports = {
     let message;
     if (isDm) message = await dm.messages.fetch(messageId);
     else {
-      let channel = await server.channels.resolve(config.roleRequestChannelId);
+      let channel = await server.channels.resolve(config.channelId);
       message = await channel.messages.fetch(messageId);
     }
 
