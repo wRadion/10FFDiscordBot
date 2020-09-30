@@ -53,15 +53,22 @@ client.on('message', async (message) => {
 
   // Create DM channel if needed
   let dm = user.dmChannel;
-  if (!dm) dm = await (await server.members.fetch(user.id)).createDM();
-  async function send(msg) { return await dm.send(msg); }
+  async function send(msg) {
+    try {
+      if (!dm) dm = await (await server.members.fetch(user.id)).createDM();
+      return await dm.send(msg);
+    } catch {
+      // User can't recieve DMs
+      await message.react('💬');
+    }
+  }
 
   // Command `!roles`
   if (command !== '!roles') {
     await send({
       embed: {
         color: colors.error,
-        description: `:no_entry: You must only use the \`!roles\` command inside the ${channel} channel.`
+        description: `:no_entry: You can only use the \`!roles\` command inside the ${channel} channel.`
       }
     });
     await message.delete();
