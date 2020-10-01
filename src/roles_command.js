@@ -5,12 +5,11 @@ const languages = require('../data/languages.json');
 const colors = require('../data/colors.json');
 
 module.exports = {
-  execute: async function(server, { requesterId, userId, messageId, isDm, url, language, norm, adv }, callback) {
+  execute: async function(server, { userId, messageId, isDm, url, language, norm, adv }, callback) {
     const startTime = Date.now();
-    const requester = (await server.members.fetch(requesterId)).user;
     const member = await server.members.fetch(userId);
     const user = member.user;
-    const dm = requester.dmChannel;
+    const dm = user.dmChannel;
 
     // Get original message
     let message;
@@ -31,8 +30,9 @@ module.exports = {
           description: `:hourglass: **Processing your request. Please wait...**`
         }
       });
-    } catch {
+    } catch (e) {
       // User can't recieve DMs
+      console.error(`[${user.username}] ${e.name}: ${e.message}`);
       await message.react('💬');
     }
 
@@ -45,7 +45,7 @@ module.exports = {
     const langId = language ? languages.indexOf(language) : -1;
 
     // Setup log function
-    function logFunction(msg) { console.log(`[${requester.username}] ${msg}`); }
+    function logFunction(msg) { console.log(`[${user.username}] ${msg}`); }
     logFunction('Processing request...');
 
     // Get roles (ids) to add/remove

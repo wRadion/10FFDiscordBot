@@ -57,8 +57,9 @@ client.on('message', async (message) => {
     try {
       if (!dm) dm = await (await server.members.fetch(user.id)).createDM();
       return await dm.send(msg);
-    } catch {
+    } catch (e) {
       // User can't recieve DMs
+      console.error(`[${user.username}] ${e.name}: ${e.message}`);
       await message.react('💬');
     }
   }
@@ -130,7 +131,6 @@ client.on('message', async (message) => {
 
   // Add command to queue
   const request = {
-    requesterId: user.id,
     userId: user.id,
     messageId: message.id,
     isDm: message.channel.type === 'dm',
