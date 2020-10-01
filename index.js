@@ -76,20 +76,29 @@ client.on('message', async (message) => {
   }
 
   // Command `!roles`
-  if (command !== '!roles' && message.channel.id === config.channelId) {
-    if (user.id === client.user.id || user.id === config.wradionId) return;
-    await send({
-      embed: {
-        color: colors.error,
-        description: `:no_entry: You can only use the \`!roles\` command inside the ${channel} channel.`
+  if (command !== '!roles') {
+    if (message.channel.id === config.channelId) {
+      // Command is not !roles, channel is right channel
+      if (user.id !== client.user.id && user.id !== config.wradionId) {
+        // Command is not !roles, channel is right channel, user is not bot or wRadion
+        await send({
+          embed: {
+            color: colors.error,
+            description: `:no_entry: You can only use the \`!roles\` command inside the ${channel} channel.`
+          }
+        });
+        await message.delete();
+        return;
+      } else {
+        // Command is not !roles, channel is right channel, user is bot or wRadion
+        return;
       }
-    });
-    await message.delete();
-    return;
-  }
-
-  // Wrong channel!
-  if (message.channel.id === config.rolesRequestChannelId) {
+    } else {
+      // Command is not !roles, channel is wrong channel
+      return;
+    }
+  } else if (message.channel.id === config.rolesRequestChannelId) {
+    // Command is !roles, channel is rolesRequest channel
     await send({
       embed: {
         color: colors.error,
@@ -99,6 +108,7 @@ client.on('message', async (message) => {
     await message.delete();
     return;
   }
+
 
   console.debug(`User ${user.username} issued command \`${message}\``);
 
