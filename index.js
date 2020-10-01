@@ -57,9 +57,16 @@ client.on('message', async (message) => {
 
   // Create DM channel if needed
   let dm = user.dmChannel;
+  let member = await server.members.fetch(user.id);
+
+  try {
+    if (!dm) dm = await member.createDM();
+  } catch (e) {
+    console.error(`[${user.username}] Could not create DM channel - ${e.name}: ${e.message}`);
+  }
+
   async function send(msg) {
     try {
-      if (!dm) dm = await (await server.members.fetch(user.id)).createDM();
       return await dm.send(msg);
     } catch (e) {
       // User can't recieve DMs
@@ -136,7 +143,8 @@ client.on('message', async (message) => {
 
   // Add command to queue
   queue.enqueue({
-    userId: user.id,
+    user: user,
+    member: member,
     message: message,
     dm: dm,
     url: url,

@@ -5,10 +5,8 @@ const languages = require('../data/languages.json');
 const colors = require('../data/colors.json');
 
 module.exports = {
-  execute: async function(server, { userId, message, dm, url, language, norm, adv }, callback) {
+  execute: async function(server, { user, member, message, dm, url, language, norm, adv }, callback) {
     const startTime = Date.now();
-    const member = await server.members.fetch(userId);
-    const user = member.user;
 
     // Send main message
     let botMessage = null;
