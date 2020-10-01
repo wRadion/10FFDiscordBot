@@ -67,7 +67,8 @@ client.on('message', async (message) => {
   }
 
   // Command `!roles`
-  if (command !== '!roles' &&  message.channel.id === config.channelId) {
+  if (command !== '!roles' && message.channel.id === config.channelId) {
+    if (user.id === client.user.id || user.id === config.wradionId) return;
     await send({
       embed: {
         color: colors.error,
