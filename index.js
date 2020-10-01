@@ -23,6 +23,7 @@ client.on('message', async (message) => {
 
   if (message.channel.type === 'dm' && [config.wradionId, ...Object.values(config.moderators)].includes(user.id)) {
     if (message.content === 'disable') {
+      console.debug('Disabling the bot...');
       await channel.send({
         embed: {
           color: colors.warning,
@@ -32,6 +33,7 @@ client.on('message', async (message) => {
       await channel.updateOverwrite(server.roles.everyone, { SEND_MESSAGES: false });
       return;
     } else if (message.content === 'enable') {
+      console.debug('Enabling the bot...');
       await channel.updateOverwrite(server.roles.everyone, { SEND_MESSAGES: null });
       await channel.send({
         embed: {
@@ -65,7 +67,7 @@ client.on('message', async (message) => {
   }
 
   // Command `!roles`
-  if (command !== '!roles') {
+  if (command !== '!roles' &&  message.channel.id === config.channelId) {
     await send({
       embed: {
         color: colors.error,
