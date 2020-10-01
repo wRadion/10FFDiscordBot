@@ -5,21 +5,10 @@ const languages = require('../data/languages.json');
 const colors = require('../data/colors.json');
 
 module.exports = {
-  execute: async function(server, { userId, messageId, isDm, url, language, norm, adv }, callback) {
+  execute: async function(server, { userId, message, dm, url, language, norm, adv }, callback) {
     const startTime = Date.now();
     const member = await server.members.fetch(userId);
     const user = member.user;
-    const dm = user.dmChannel;
-
-    // Get original message
-    let message;
-    if (isDm) message = await dm.messages.fetch(messageId);
-    else {
-      let channel = await server.channels.resolve(config.channelId);
-      message = await channel.messages.fetch(messageId);
-    }
-
-    // Command execution
 
     // Send main message
     let botMessage = null;

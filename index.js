@@ -31,6 +31,7 @@ client.on('message', async (message) => {
         }
       });
       await channel.updateOverwrite(server.roles.everyone, { SEND_MESSAGES: false });
+      console.debug('Bot disabled.');
       return;
     } else if (message.content === 'enable') {
       console.debug('Enabling the bot...');
@@ -41,6 +42,7 @@ client.on('message', async (message) => {
           description: ':white_check_mark: Bot is now enabled!'
         }
       });
+      console.debug('Bot enabled!');
       return;
     }
     if (process.env.NODE_ENV === 'production') return;
@@ -128,22 +130,20 @@ client.on('message', async (message) => {
           `Please read https://github.com/wRadion/10FFDiscordBot for more help.`
       }
     });
-    await message.delete();
+    if (message.channel.type !== 'dm') await message.delete();
     return;
   }
 
   // Add command to queue
-  const request = {
+  queue.enqueue({
     userId: user.id,
-    messageId: message.id,
-    isDm: message.channel.type === 'dm',
+    message: message,
+    dm: dm,
     url: url,
     language: language,
     norm: norm,
     adv: adv
-  };
-
-  queue.enqueue(request, async position => {
+  }, async position => {
     await send({
       embed: {
         color: colors.info,
