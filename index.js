@@ -62,7 +62,7 @@ client.on('message', async (message) => {
   try {
     if (!dm) dm = await member.createDM();
   } catch (e) {
-    console.error(`[${user.username}] Could not create DM channel - ${e.name}: ${e.message}`);
+    console.debug(`[${user.username}] Could not create DM channel - ${e.name}: ${e.message}`);
   }
 
   async function send(msg) {
@@ -70,7 +70,7 @@ client.on('message', async (message) => {
       return await dm.send(msg);
     } catch (e) {
       // User can't recieve DMs
-      console.error(`[${user.username}] ${e.name}: ${e.message}`);
+      console.debug(`[${user.username}] ${e.name}: ${e.message}`);
       await message.react('💬');
     }
   }

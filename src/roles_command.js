@@ -19,7 +19,7 @@ module.exports = {
       });
     } catch (e) {
       // User can't recieve DMs
-      console.error(`[${user.username}] ${e.name}: ${e.message}`);
+      console.debug(`[${user.username}] ${e.name}: ${e.message}`);
       await message.react('💬');
     }
 
