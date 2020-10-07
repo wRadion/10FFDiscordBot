@@ -7,13 +7,19 @@ module.exports = class RequestQueue {
     this.queue = [];
   }
 
-  processNext() {
+  async processNext() {
     if (this.queue.length === 0) {
       this.isProcessing = false;
       return;
     }
     this.isProcessing = true;
-    rolesCommand.execute(this.server, this.queue.shift(), () => this.processNext());
+    const args = this.queue.shift();
+    try {
+      await rolesCommand.execute(this.server, args, () => this.processNext());
+    } catch (e) {
+      console.error(`[${args.user.username}] ${e.name}: ${e.message}`)
+      this.isProcessing = false;
+    }
   }
 
   enqueue(request, callback) {
