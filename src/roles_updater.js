@@ -17,7 +17,7 @@ async function getUserInfos(user, url, langId, logFunction, callbackError, callb
 
   // Accept Cookies
   try {
-    await page.click('#CybotCookiebotDialogBodyLevelButtonAcceptWrapper');
+    await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
   } catch {}
 
   // Get 10FF username and description

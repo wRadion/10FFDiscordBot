@@ -54,7 +54,7 @@ client.on('message', async (message) => {
     return;
   }
 
-  // consty, hi!
+  // Ignore consty, hi!
   if (user.id === config.constyId)
   {
     await message.delete();
