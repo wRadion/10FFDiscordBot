@@ -21,6 +21,9 @@ client.on('ready', async () => {
 client.on('message', async (message) => {
   let user = message.author;
 
+  // If it's this bot, just skip
+  if (user.id === client.user.id) return;
+
   if (message.channel.type === 'dm' && [config.wradionId, ...Object.values(config.moderators)].includes(user.id)) {
     if (message.content === 'disable') {
       console.debug('Disabling the bot...');
@@ -48,6 +51,13 @@ client.on('message', async (message) => {
     if (process.env.NODE_ENV === 'production') return;
   }
   else if (process.env.NODE_ENV !== 'production' || (message.channel.id !== config.channelId && message.channel.id !== config.rolesRequestChannelId)) {
+    return;
+  }
+
+  // consty, hi!
+  if (user.id === config.constyId)
+  {
+    await message.delete();
     return;
   }
 

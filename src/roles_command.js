@@ -58,9 +58,9 @@ module.exports = {
           const moderatorMember = await server.members.fetch(id);
           const moderatorUser = moderatorMember.user;
 
-          let dm = moderatorUser.dmChannel;
-          if (!dm) dm = await moderatorMember.createDM();
-          dm.send(
+          let modDm = moderatorUser.dmChannel;
+          if (!modDm) modDm = await moderatorMember.createDM();
+          modDm.send(
             (process.env.DEBUG ? '**This is a DEBUG message, please ignore it**\n\n' : '') +
             `:warning: Heads up, **${moderatorUser.username}**!\n\n` +
             `User **${user.tag}** (__${member.nickname || user.username}__) updated his WPM roles.\n` +
