@@ -54,13 +54,6 @@ client.on('message', async (message) => {
     return;
   }
 
-  // Ignore consty, hi!
-  if (user.id === config.constyId)
-  {
-    await message.delete();
-    return;
-  }
-
   // Get Command name and Args
   const args = message.content.split(/\s+/);
   const command = args.shift();
@@ -119,8 +112,14 @@ client.on('message', async (message) => {
     return;
   }
 
-
   console.debug(`User ${user.username} issued command \`${message}\``);
+
+  // Ignore consty, hi!
+  if (user.id === config.constyId)
+  {
+    await message.delete();
+    return;
+  }
 
   // Init command
   let url, language, norm, adv;
