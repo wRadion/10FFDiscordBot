@@ -114,6 +114,13 @@ client.on('message', async (message) => {
 
   console.debug(`User ${user.username} issued command \`${message}\``);
 
+  // Ignore consty, for good
+  if (user.id === config.constyId)
+  {
+    await message.delete();
+    return;
+  }
+
   // Init command
   let url, language, norm, adv;
   let error = null;
