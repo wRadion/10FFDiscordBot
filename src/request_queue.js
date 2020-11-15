@@ -18,7 +18,7 @@ module.exports = class RequestQueue {
       await rolesCommand.execute(this.server, args, () => this.processNext());
     } catch (e) {
       console.error(`[${args.user.username}] ${e.name}: ${e.message}`)
-      this.isProcessing = false;
+      this.processNext();
     }
   }
 
