@@ -14,17 +14,23 @@ module.exports = class RequestQueue {
     }
     this.isProcessing = true;
     const args = this.queue.shift();
+
     try {
-      await rolesCommand.execute(this.server, args, () => this.processNext());
-    } catch (e) {
-      console.error(`[${args.user.username}] ${e.name}: ${e.message}`)
+      await rolesCommand.execute(this.server, args);
+    } catch(error) {
+      console.error(`[${args.user.username}] ${error.name}: ${error.message}`);
+    } finally {
       this.processNext();
     }
   }
 
-  enqueue(request, callback) {
+  enqueue(request) {
     this.queue.push(request);
-    if (!this.isProcessing) this.processNext();
-    else callback(this.queue.length);
+    if (!this.isProcessing) {
+      this.processNext();
+      return 0;
+    } else {
+      return this.queue.length;
+    }
   }
 };

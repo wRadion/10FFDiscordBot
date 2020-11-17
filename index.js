@@ -186,7 +186,7 @@ client.on('message', async (message) => {
   }
 
   // Add command to queue
-  queue.enqueue({
+  const position = queue.enqueue({
     user: user,
     member: member,
     message: message,
@@ -195,14 +195,16 @@ client.on('message', async (message) => {
     language: language,
     norm: norm,
     adv: adv
-  }, async position => {
+  });
+
+  if (position > 0) {
     await send({
       embed: {
         color: colors.info,
         description: `:information_source: Your request has been registered. You're in position **#${position}** in the queue.`
       }
     });
-  });
+  }
 });
 
 client.login(process.env.DISCORD_BOT_TOKEN);
