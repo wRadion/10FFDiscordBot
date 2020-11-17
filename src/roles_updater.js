@@ -111,6 +111,8 @@ function getUserInfos(user, url, langId, logFunction) {
       await page.waitForSelector('#graph-flag-selection-fullscreen');
     } catch {}
 
+    await page.page.screenshot({ path: 'screenshot.png' });
+
     // Click on the language flag (in the fullscreen graph)
     await page.click(`#graph-flag-selection-fullscreen a[speedtest_id='${langId}']`);
   });

@@ -9,6 +9,7 @@ module.exports = class RequestQueue {
 
   async processNext() {
     if (this.queue.length === 0) {
+      console.log('Queue is empty. Stop processing.');
       this.isProcessing = false;
       return;
     }
@@ -27,6 +28,7 @@ module.exports = class RequestQueue {
   enqueue(request) {
     this.queue.push(request);
     if (!this.isProcessing) {
+      console.log('Starting processing queue!');
       this.processNext();
       return 0;
     } else {
