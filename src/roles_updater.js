@@ -9,10 +9,8 @@ async function getUserInfos(user, url, langId, logFunction, callbackError, callb
   // Get userId from 10FF profile URL
   const userId = url.match(/(\d+)\/?$/)[1];
 
-  // Launch Browser and create new Page
-  const browser = new Browser(logFunction);
-  await browser.launch();
-  const page = await browser.newPage();
+  // Get Page singleton
+  const page = await Browser.getPage(logFunction);
   await page.goto(url);
 
   // Accept Cookies
@@ -25,7 +23,6 @@ async function getUserInfos(user, url, langId, logFunction, callbackError, callb
 
   // Check if the profile is owned by the user
   if (!description.match(user.tag) && !description.match(user.id)) {
-    await browser.close();
     callbackError(
       `Couldn't verify your identity. Please write your Discord tag (**${user.tag}**) OR your Discord ID (**${user.id}**) in your 10FF profile **description** and retry.`,
       '👤');
@@ -99,8 +96,7 @@ async function getUserInfos(user, url, langId, logFunction, callbackError, callb
     userInfos.maxNorm = maxNorm;
     userInfos.maxAdv = maxAdv;
 
-    // Close browser and call callback
-    await browser.close();
+    // Call callback
     callbackOk(userInfos);
   });
 

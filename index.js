@@ -9,13 +9,21 @@ const colors = require('./data/colors.json');
 
 let server;
 let queue;
-let channel;
+let autoRolesChannel;
 
 client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
+
+  // Fetch Guild
   server = await client.guilds.fetch(config.guildId);
+
+  // Fetch #auto-roles Channel
+  autoRolesChannel = server.channels.resolve(config.channels.autoRoles);
+
+  // Initialize RequestQueue
   queue = new RequestQueue(server);
-  channel = server.channels.resolve(config.channelId);
+
+  console.log('Bot is Ready!');
 });
 
 client.on('message', async (message) => {
@@ -24,22 +32,22 @@ client.on('message', async (message) => {
   // If it's this bot, just skip
   if (user.id === client.user.id) return;
 
-  if (message.channel.type === 'dm' && [config.wradionId, ...Object.values(config.moderators)].includes(user.id)) {
+  if (message.channel.type === 'dm' && [config.users.wradion, ...Object.values(config.moderators)].includes(user.id)) {
     if (message.content === 'disable') {
       console.debug('Disabling the bot...');
-      await channel.send({
+      await autoRolesChannel.send({
         embed: {
           color: colors.warning,
           description: '⚠ Bot is now disabled due to maintenance.'
         }
       });
-      await channel.updateOverwrite(server.roles.everyone, { SEND_MESSAGES: false });
+      await autoRolesChannel.updateOverwrite(server.roles.everyone, { SEND_MESSAGES: false });
       console.debug('Bot disabled.');
       return;
     } else if (message.content === 'enable') {
       console.debug('Enabling the bot...');
-      await channel.updateOverwrite(server.roles.everyone, { SEND_MESSAGES: null });
-      await channel.send({
+      await autoRolesChannel.updateOverwrite(server.roles.everyone, { SEND_MESSAGES: null });
+      await autoRolesChannel.send({
         embed: {
           color: colors.success,
           description: ':white_check_mark: Bot is now enabled!'
@@ -50,7 +58,7 @@ client.on('message', async (message) => {
     }
     if (process.env.NODE_ENV === 'production') return;
   }
-  else if (process.env.NODE_ENV !== 'production' || (message.channel.id !== config.channelId && message.channel.id !== config.rolesRequestChannelId)) {
+  else if (process.env.NODE_ENV !== 'production' || (message.channel.id !== config.channels.autoRoles && message.channel.id !== config.channels.rolesRequest)) {
     return;
   }
 
@@ -80,14 +88,14 @@ client.on('message', async (message) => {
 
   // Command `!roles`
   if (command !== '!roles') {
-    if (message.channel.id === config.channelId) {
+    if (message.channel.id === config.channels.autoRoles) {
       // Command is not !roles, channel is right channel
-      if (user.id !== client.user.id && user.id !== config.wradionId) {
+      if (user.id !== client.user.id && user.id !== config.users.wradion) {
         // Command is not !roles, channel is right channel, user is not bot or wRadion
         await send({
           embed: {
             color: colors.error,
-            description: `:no_entry: You can only use the \`!roles\` command inside the ${channel} channel.`
+            description: `:no_entry: You can only use the \`!roles\` command inside the ${autoRolesChannel} channel.`
           }
         });
         await message.delete();
@@ -100,12 +108,12 @@ client.on('message', async (message) => {
       // Command is not !roles, channel is wrong channel
       return;
     }
-  } else if (message.channel.id === config.rolesRequestChannelId) {
+  } else if (message.channel.id === config.channels.rolesRequest) {
     // Command is !roles, channel is rolesRequest channel
     await send({
       embed: {
         color: colors.error,
-        description: `:no_entry: You must use the \`!roles\` command inside the ${channel} channel.`
+        description: `:no_entry: You must use the \`!roles\` command inside the ${autoRolesChannel} channel.`
       }
     });
     await message.delete();
@@ -115,7 +123,7 @@ client.on('message', async (message) => {
   console.debug(`User ${user.username} issued command \`${message}\``);
 
   // Ignore consty, for good
-  if (user.id === config.constyId)
+  if (user.id === config.users.consty)
   {
     await message.delete();
     return;
