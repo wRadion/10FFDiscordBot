@@ -115,7 +115,7 @@ module.exports = {
           embed: {
             color: colors.error,
             description: `:x: **Error:** ${error}\n\n` +
-              `Please read https://github.com/wRadion/10FFDiscordBot for more help.`
+              `Please read https://github.com/wRadion/10FFDiscordBot for more help or contact **@wRadion** if this issue persist.`
           }
         });
         logFunction(`Done (${(Date.now() - startTime)/1000} sec)`);

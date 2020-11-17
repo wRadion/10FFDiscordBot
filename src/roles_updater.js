@@ -1,4 +1,3 @@
-const fs = require('fs');
 const Browser = require('../lib/browser');
 
 const roles = require('../data/roles.json');
@@ -12,7 +11,7 @@ function getUserInfos(user, url, langId, logFunction) {
 
     // Get Page singleton
     const page = await Browser.getPage(logFunction);
-    await page.goto(url);
+    await page.goto(url).catch(reject);
 
     // Get 10FF username and description
     const description = await page.$('#profile-description', n => n.innerText);
@@ -33,7 +32,7 @@ function getUserInfos(user, url, langId, logFunction) {
 
     // Click the Fullscreen button (top-right of the graph)
     await page.click('#graph-fullscreen');
-    await page.waitForSelector('#graph-flag-selection-fullscreen');
+    await page.waitForSelector('#graph-flag-selection-fullscreen').catch(reject);
 
     // Get the main language if langId is not given
     if (langId < 0) langId = parseInt(await page.$('span.flag.active', n => n['id'].substring(6)));
@@ -99,6 +98,7 @@ function getUserInfos(user, url, langId, logFunction) {
       userInfos.maxAdv = maxAdv;
 
       // Resolve Promise
+      page.clearListeners();
       resolve(userInfos);
     });
 
@@ -111,18 +111,16 @@ function getUserInfos(user, url, langId, logFunction) {
       await page.waitForSelector('#graph-flag-selection-fullscreen');
     } catch {}
 
-    await page.page.screenshot({ path: 'screenshot.png' });
-
     // Click on the language flag (in the fullscreen graph)
-    await page.click(`#graph-flag-selection-fullscreen a[speedtest_id='${langId}']`);
+    setTimeout(async () => await page.click(`#graph-flag-selection-fullscreen a[speedtest_id='${langId}']`)
+    .catch((error) => { page.clearListeners(); reject(error); }), 500);
   });
 }
 
 module.exports = {
   getRolesToUpdate: function(user, member, url, langId, norm, adv, logFunction, callbackWarn) {
-    return new Promise(async (resolve, reject) => {
-      await getUserInfos(user, url, langId, logFunction)
-      .then((userInfos) => {
+    return getUserInfos(user, url, langId, logFunction).then((userInfos) => {
+      return new Promise(async (resolve, reject) => {
         const rolesToUpdate = {};
         rolesToUpdate.toAdd = [];
         rolesToUpdate.toRemove = [];
