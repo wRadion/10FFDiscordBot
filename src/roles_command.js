@@ -110,13 +110,18 @@ module.exports = {
         resolve();
       }).catch(async (error) => {
         // callback Error
-        console.log(error);
         logFunction(`Error: ${error}`);
-        const split = error.split(';;');
+
         let error_cut = null;
         let emoji = null;
-        error_cut = split[0];
-        if (split.length > 1) emoji = split[1];
+        try {
+          const split = error.split(';;');
+          error_cut = split[0];
+          if (split.length > 1) emoji = split[1];
+        } catch {
+          error_cut = error;
+        }
+
         await editMessage({
           embed: {
             color: colors.error,
