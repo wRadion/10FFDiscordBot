@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
+const { exec } = require('child_process');
 
 const RequestQueue = require('./src/request_queue');
 
@@ -24,6 +25,22 @@ client.on('ready', async () => {
   queue = new RequestQueue(server);
 
   console.log('Bot is Ready!');
+});
+
+process.on('SIGINT', () => {
+  if (process.env.OS !== 'Windows_NT') {
+    // Kill chrome processes
+    exec('pkill chrome');
+
+    // Delete /tmp puppeteer_dev_chrome profiles files
+    exec('rm -rf /tmp/puppeteer*');
+  }
+
+  // Destroy Discord Client
+  client.destroy();
+
+  console.log('Terminated gracefully.');
+  process.exit();
 });
 
 client.on('message', async (message) => {
