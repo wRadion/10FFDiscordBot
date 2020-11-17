@@ -13,6 +13,12 @@ function getUserInfos(user, url, langId, logFunction) {
     const page = await Browser.getPage(logFunction);
     await page.goto(url).catch(reject);
 
+    // Check if not redirected
+    if (page.url() !== url) {
+      reject('The account linked to that URL does not exist.');
+      return;
+    }
+
     // Get 10FF username and description
     const description = await page.$('#profile-description', n => n.innerText);
 
@@ -20,8 +26,10 @@ function getUserInfos(user, url, langId, logFunction) {
     if (!description.match(user.tag) && !description.match(user.id)) {
       // Reject Promise
       reject(
-        `Couldn't verify your identity. Please write your Discord tag (**${user.tag}**) OR your Discord ID (**${user.id}**) in your 10FF profile **description** and retry.`,
-        '👤');
+        "Couldn't verify your identity." +
+        ` Please write your Discord tag (**${user.tag}**)` +
+        ` OR your Discord ID (**${user.id}**) in your 10FF profile **description** and retry.;;👤`
+      );
       return;
     }
 
@@ -113,7 +121,7 @@ function getUserInfos(user, url, langId, logFunction) {
 
     // Click on the language flag (in the fullscreen graph)
     setTimeout(async () => await page.click(`#graph-flag-selection-fullscreen a[speedtest_id='${langId}']`)
-    .catch((error) => { page.clearListeners(); reject(error); }), 500);
+    .catch((error) => { page.clearListeners(); reject(error); }), 1000);
   });
 }
 
@@ -128,16 +136,15 @@ module.exports = {
         // Set automatically max norm/adv if none was requested
         if (!norm) norm = userInfos.maxNorm;
         if (!adv) adv = userInfos.maxAdv;
-        console.log(norm, adv);
 
         // Check requested norm/adv WPM with max scores
         if (norm > userInfos.maxNorm) {
           // Reject Promise
-          reject(`You can't have the **${norm}-${norm+9} WPM** role as your detected max normal WPM is **${userInfos.maxNorm} WPM**.`, '🚫');
+          reject(`You can't have the **${norm}-${norm+9} WPM** role as your detected max normal WPM is **${userInfos.maxNorm} WPM**.;;🚫`);
           return;
         } else if (adv > userInfos.maxAdv) {
           // Reject Promise
-          reject(`You can't have the **${adv}-${adv+9} WPM (Advanced)** role as your detected max advanced WPM is **${userInfos.maxAdv} WPM**.`, '🚫');
+          reject(`You can't have the **${adv}-${adv+9} WPM (Advanced)** role as your detected max advanced WPM is **${userInfos.maxAdv} WPM**.;;🚫`);
           return;
         }
 

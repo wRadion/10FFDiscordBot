@@ -108,13 +108,19 @@ module.exports = {
         logFunction(`Done (${(Date.now() - startTime)/1000} sec)`);
         message.react('✅');
         resolve();
-      }).catch(async (error, emoji = null) => {
+      }).catch(async (error) => {
         // callback Error
+        console.log(error);
         logFunction(`Error: ${error}`);
+        const split = error.split(';;');
+        let error_cut = null;
+        let emoji = null;
+        error_cut = split[0];
+        if (split.length > 1) emoji = split[1];
         await editMessage({
           embed: {
             color: colors.error,
-            description: `:x: **Error:** ${error}\n\n` +
+            description: `:x: **Error:** ${error_cut}\n\n` +
               `Please read https://github.com/wRadion/10FFDiscordBot for more help or contact **@wRadion** if this issue persist.`
           }
         });
