@@ -140,13 +140,6 @@ client.on('message', async (message) => {
 
   console.debug(`User ${user.username} issued command \`${message}\``);
 
-  // Ignore consty, for good
-  if (user.id === config.users.consty)
-  {
-    await message.delete();
-    return;
-  }
-
   if (command === '!rolesclear') {
     try {
       member.roles.cache.forEach(role => {
