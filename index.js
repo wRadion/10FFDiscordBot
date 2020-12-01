@@ -148,12 +148,18 @@ client.on('message', async (message) => {
   }
 
   if (command === '!rolesclear') {
-    member.roles.cache.forEach(role => {
-      const rid = role.id.toString();
-      if (Object.values(roles.norm).includes(rid) || Object.values(roles.adv).includes(rid) || rid == roles.verified) {
-        member.roles.remove(role.id);
-      }
-    });
+    try {
+      member.roles.cache.forEach(role => {
+        const rid = role.id.toString();
+        if (Object.values(roles.norm).includes(rid) || Object.values(roles.adv).includes(rid) || rid == roles.verified) {
+          member.roles.remove(role.id);
+        }
+      });
+      await message.react('✅');
+    } catch (error) {
+      console.error(error);
+      await message.react('❌');
+    }
     return;
   }
 
