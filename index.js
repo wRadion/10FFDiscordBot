@@ -7,6 +7,7 @@ const RequestQueue = require('./src/request_queue');
 const config = require('./data/config.json');
 const languages = require('./data/languages.json');
 const colors = require('./data/colors.json');
+const roles = require('./data/roles.json');
 
 let server;
 let queue;
@@ -104,7 +105,7 @@ client.on('message', async (message) => {
   }
 
   // Command `!roles`
-  if (command !== '!roles') {
+  if (command !== '!roles' && command !== '!rolesclear') {
     if (message.channel.id === config.channels.autoRoles) {
       // Command is not !roles, channel is right channel
       if (user.id !== client.user.id && user.id !== config.users.wradion) {
@@ -143,6 +144,16 @@ client.on('message', async (message) => {
   if (user.id === config.users.consty)
   {
     await message.delete();
+    return;
+  }
+
+  if (command === '!rolesclear') {
+    member.roles.cache.forEach(role => {
+      const rid = role.id.toString();
+      if (Object.values(roles.norm).includes(rid) || Object.values(roles.adv).includes(rid) || rid == roles.verified) {
+        member.roles.remove(role.id);
+      }
+    });
     return;
   }
 
