@@ -23,7 +23,8 @@ function getUserInfos(user, url, langId, logFunction) {
     const description = await page.$('#profile-description', n => n.innerText);
 
     // Check if the profile is owned by the user
-    if (!description.match(user.tag) && !description.match(user.id)) {
+    // The replace is there for escaping the chars used by regexp
+    if (!description.match(user.tag.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&')) && !description.match(user.id)) {
       // Reject Promise
       reject(
         "Couldn't verify your identity." +
