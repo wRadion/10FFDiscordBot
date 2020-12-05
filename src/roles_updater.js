@@ -43,7 +43,7 @@ function getUserInfos(user, url, langId, logFunction) {
     const testsTaken = parseInt((await page.$('#profile-data-table > tbody > tr:nth-child(7) > td:nth-child(2)', n => n.innerText)).replace(/,/,''));
     if (testsTaken <= 0) {
       // Reject Promise
-      reject("You need to do at least one test on 10FF to have a WPM role (competitions are excluded).");
+      reject("You need to do at least one test on 10FF to have a WPM role (competitions are excluded).;;0⃣");
       return;
     }
 
