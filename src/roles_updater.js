@@ -39,6 +39,15 @@ function getUserInfos(user, url, langId, logFunction) {
       await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll', false);
     } catch {}
 
+    // Check if user has done at least one test
+    const testsTaken = parseInt((await page.$('#profile-data-table > tbody > tr:nth-child(7) > td:nth-child(2)', n => n.innerText)).replace(/,/,''));
+    console.log(testsTaken);
+    if (testsTaken <= 0) {
+      // Reject Promise
+      reject("You need to do at least one test on 10FF to have a WPM role (competitions are excluded).");
+      return;
+    }
+
     // Click the Fullscreen button (top-right of the graph)
     await page.click('#graph-fullscreen');
     await page.waitForSelector('#graph-flag-selection-fullscreen').catch(reject);
