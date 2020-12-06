@@ -27,12 +27,12 @@
 
 Usage:
 ```
-!roles <your 10FF profile URL> <language>
+!roles <your 10FF profile URL>
 ```
 
 Example:
 ```
-!roles https://10fastfingers.com/user/209050/ french
+!roles https://10fastfingers.com/user/209050/
 ```
 
 The command only works in the **#auto-roles** channel.
@@ -91,7 +91,7 @@ For now, the competitions are not read by the bot. But it will (soon?) be possib
 
 #### Language
 
-You **have to** specify the language in the command:
+If your main language (the language in which you did the most tests) is not the language you wish to use for your WPM roles, you can specify it in the command:
 ```
 !roles https://10fastfingers.com/user/209050/ english
 ```
