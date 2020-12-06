@@ -1,26 +1,25 @@
-const Browser = require('../lib/browser');
+const axios = require('axios').default;
+const cheerio = require('cheerio');
 
 const roles = require('../data/roles.json');
+const achievements = require('../data/achievements.json');
 
 function getUserInfos(user, url, langId, logFunction) {
   return new Promise(async (resolve, reject) => {
-    const userInfos = {};
+    const userInfos = {
+      id: url.match(/(\d+)\/?$/)[1], // Get userId from 10FF profile URL
+      langId: langId // Get langId from command
+    };
 
-    // Get userId from 10FF profile URL
-    const userId = url.match(/(\d+)\/?$/)[1];
+    // Fetch page HTML
+    let response = await axios.get(url).catch(reject);
+    if (!response) return;
 
-    // Get Page singleton
-    const page = await Browser.getPage(logFunction);
-    await page.goto(url).catch(reject);
+    // Load HTML with cheerio
+    const $ = cheerio.load(response.data);
 
-    // Check if not redirected
-    if (page.url() !== url) {
-      reject('The account linked to that URL does not exist.');
-      return;
-    }
-
-    // Get 10FF username and description
-    const description = await page.$('#profile-description', n => n.innerText);
+    // Get 10FF profile description
+    const description = $('#profile-description').text();
 
     // Check if the profile is owned by the user
     // The replace is there for escaping the chars used by regexp
@@ -34,103 +33,64 @@ function getUserInfos(user, url, langId, logFunction) {
       return;
     }
 
-    // Accept Cookies
-    try {
-      await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll', false);
-    } catch {}
+    // Tests and Competitions Taken
+    userInfos.testsTaken = parseInt($('#profile-data-table > tbody > tr:nth-child(7) > td:nth-child(2)').text().replace(/,/, ''));
+    userInfos.competsTaken = parseInt($('#profile-data-table > tbody > tr:nth-child(8) > td:nth-child(2)').text().split(' ')[0].replace(/,/, ''));
 
     // Check if user has done at least one test
-    const testsTaken = parseInt((await page.$('#profile-data-table > tbody > tr:nth-child(7) > td:nth-child(2)', n => n.innerText)).replace(/,/,''));
-    if (testsTaken <= 0) {
+    if (userInfos.testsTaken <= 0) {
       // Reject Promise
       reject("You need to do at least one test on 10FF to have a WPM role (competitions are excluded).;;0⃣");
       return;
     }
 
-    // Click the Fullscreen button (top-right of the graph)
-    await page.click('#graph-fullscreen');
-    await page.waitForSelector('#graph-flag-selection-fullscreen').catch(reject);
+    // Get achievement ids
+    const user_achievements = response.data.match(/var achievement_string =\s*"([\d,]+)"/)[1].split(',').map(Number);
 
-    // Get the main language if langId is not given
-    if (langId < 0) langId = parseInt(await page.$('span.flag.active', n => n['id'].substring(6)));
-    userInfos.langId = langId;
+    // Specific roles (supporter + translator)
+    userInfos.supporter = user_achievements.includes(48);
+    userInfos.translator = user_achievements.includes(18);
 
-    // Specific roles
-    userInfos.supporter = !(await page.$('#supporter-100', n => n.className.split(' '))).includes('locked');
-    userInfos.translator = !(await page.$('#special-translator', n => n.className.split(' '))).includes('locked');
+    // Completionist
     userInfos.completionist = true;
-    const achievements = await page.$$('.achievement:not(.special):not(.hidden)');
-    for (let e of achievements) {
-      if ((await e.evaluate(h => h.className)).includes('locked')) {
+    Object.keys(achievements).map(Number).forEach(id => {
+      // Skip special-translator, supporter-100 && tests/comps taken
+      if (id < 18 && id > 33 && id !== 48 && !user_achievements.includes(id)) {
+        console.log(id);
         userInfos.completionist = false;
-        break;
       }
-    }
-
-    // Tests and Competitions Taken
-    const dataTable = await page.$$('#profile-data-table tr td');
-    userInfos.testsTaken = parseInt(await dataTable[13].evaluate(h => h.innerText.split(',').join('')));
-    userInfos.competsTaken = parseInt(await dataTable[15].evaluate(h => h.innerText.split(',').join('')));
-
-    // Listen for the API response to get the max norm/adv WPM
-    page.on('response', async (res) => {
-      if (res.request().url() !== `https://10fastfingers.com/users/get_graph_data/1/${userId}/${langId}`) return;
-
-      // Get Max Norm/Adv score (last 400 tests)
-      const data = await res.json();
-      let [maxNorm, maxAdv] = [data.max_norm, data.max_adv].map(Number);
-
-      // Chinese traditional/simplified
-      if (langId === 15 || langId === 16) {
-        maxNorm = Math.max(...data.graph_data.filter(s => !!s.g1).map(s => parseInt(s.correct_words)));
-        maxAdv = Math.max(...data.graph_data.filter(s => !!s.g2).map(s => parseInt(s.correct_words)));
-      } // Japanese
-      else if (langId === 29) {
-        const japaneseDate = new Date("2019-02-25 00:00:00");
-        maxNorm = Math.max(...data.graph_data.filter(s => !!s.g1 && new Date(s.date) > japaneseDate).map(s => parseInt(s.g1)))
-        maxAdv = Math.max(...data.graph_data.filter(s => !!s.g2 && new Date(s.date) > japaneseDate).map(s => parseInt(s.g2)))
-      }
-
-      // Check Multilingual
-      userInfos.multilingual = data.languages_sorted.filter(a => parseInt(a['0'].anzahl) >= 50).length >= 10;
-
-      // Get Max Competition score
-      // TODO: Add the possibility to use a specific compet for the record
-      /*
-      let maxCompetWpm = 0;
-
-      const rows = await page.$$('#recent-competitions tr');
-      for (let i = 1; i < rows.length; ++i) {
-        if (parseInt(await rows[i].$eval('span.flag', n => n['id'].substring(6))) !== langId) continue;
-
-        const competPage = await browser.newPage();
-        await competPage.goto(await rows[i].$eval('a', n => n['href']));
-        const competWpm = parseInt(await competPage.$(`tr[user_id='${userId}'] .wpm`, n => n.innerText));
-        if (competWpm > maxCompetWpm) maxCompetWpm = competWpm;
-      }
-      */
-
-      // Set max WPMs user infos
-      userInfos.maxNorm = maxNorm;
-      userInfos.maxAdv = maxAdv;
-
-      // Resolve Promise
-      page.clearListeners();
-      resolve(userInfos);
     });
 
-    // Accept Cookies in case they're still there
-    try {
-      await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll', false);
+    // Fetch WPMs
+    const reqUrl = `https://10fastfingers.com/users/get_graph_data/1/${userInfos.id}/${userInfos.langId}`;
+    response = await axios.get(reqUrl, { headers: { "user-agent": "Mozilla", "x-requested-with": "XMLHttpRequest" } }).catch(reject);
+    if (!response) return;
 
-      // We have to re-click because the click on the cookie btn closes the modal
-      await page.click('#graph-fullscreen', false);
-      await page.waitForSelector('#graph-flag-selection-fullscreen');
-    } catch {}
+    const data = response.data;
 
-    // Click on the language flag (in the fullscreen graph)
-    setTimeout(async () => await page.click(`#graph-flag-selection-fullscreen a[speedtest_id='${langId}']`)
-    .catch((error) => { page.clearListeners(); reject(error); }), 1000);
+    // Get Max Norm/Adv score (last 400 tests)
+    let [maxNorm, maxAdv] = [data.max_norm, data.max_adv].map(Number);
+
+    // Chinese traditional/simplified
+    if (langId === 15 || langId === 16) {
+      maxNorm = Math.max(...data.graph_data.filter(s => !!s.g1).map(s => parseInt(s.correct_words)));
+      maxAdv = Math.max(...data.graph_data.filter(s => !!s.g2).map(s => parseInt(s.correct_words)));
+    } // Japanese
+    else if (langId === 29) {
+      const japaneseDate = new Date("2019-02-25 00:00:00");
+      maxNorm = Math.max(...data.graph_data.filter(s => !!s.g1 && new Date(s.date) > japaneseDate).map(s => parseInt(s.g1)))
+      maxAdv = Math.max(...data.graph_data.filter(s => !!s.g2 && new Date(s.date) > japaneseDate).map(s => parseInt(s.g2)))
+    }
+
+    // Set max WPMs user infos
+    userInfos.maxNorm = maxNorm;
+    userInfos.maxAdv = maxAdv;
+
+    // Check Multilingual (at least 50 tests in 10 languages)
+    userInfos.multilingual = data.languages_sorted.filter(a => parseInt(a['0'].anzahl) >= 50).length >= 10;
+
+    // Resolve Promise
+    resolve(userInfos);
   });
 }
 

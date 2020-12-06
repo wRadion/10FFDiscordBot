@@ -27,12 +27,12 @@
 
 Usage:
 ```
-!roles <your 10FF profile URL>
+!roles <your 10FF profile URL> <language>
 ```
 
 Example:
 ```
-!roles https://10fastfingers.com/user/209050/
+!roles https://10fastfingers.com/user/209050/ french
 ```
 
 The command only works in the **#auto-roles** channel.
@@ -87,16 +87,16 @@ Obviously, you can't request a WPM role that is higher that your highest score. 
 
 #### Competitions
 
-For now, the competitions are not read by the bot. But it will be possible to specify a competition URL if you did your record there.
+For now, the competitions are not read by the bot. But it will (soon?) be possible to specify a competition URL if you did your record there.
 
 #### Language
 
-If your main language (the language in which you did the most tests) is not the language you wish to use for your WPM roles, you can specify it in the command:
+You **have to** specify the language in the command:
 ```
 !roles https://10fastfingers.com/user/209050/ english
 ```
 
-All languages are now supported.
+All languages are supported.
 
 ##### Chinese Traditional & Simplified
 

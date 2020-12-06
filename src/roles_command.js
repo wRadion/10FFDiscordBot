@@ -1,16 +1,15 @@
 const rolesUpdater = require('./roles_updater');
 
 const config = require('../data/config.json');
-const languages = require('../data/languages.json');
 const colors = require('../data/colors.json');
 
 module.exports = {
-  execute: function(server, { user, member, message, dm, url, language, norm, adv }) {
+  execute: function(server, { user, member, message, dm, url, langId, norm, adv }) {
     return new Promise(async (resolve) => {
       const startTime = Date.now();
 
       // Send main message
-      let botMessage = null;
+      let botMessage;
       try {
         botMessage = await dm.send({
           embed: {
@@ -20,6 +19,7 @@ module.exports = {
         });
       } catch (e) {
         // User can't recieve DMs
+        botMessage = null;
         console.debug(`[${user.username}] ${e.name}: ${e.message}`);
         await message.react('💬');
       }
@@ -28,9 +28,6 @@ module.exports = {
         if (!botMessage) return;
         await botMessage.edit(msg);
       }
-
-      // Get language id
-      const langId = language ? languages.indexOf(language) : -1;
 
       // Setup log function
       function logFunction(msg) { console.log(`[${user.username}] ${msg}`); }
