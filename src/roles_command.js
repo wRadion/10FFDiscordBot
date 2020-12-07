@@ -119,6 +119,16 @@ module.exports = {
           error_cut = error;
         }
 
+        if (emoji === "👤") {
+          await message.channel.send(
+              `👤 :x: ${member}: Please copy your **Discord tag or ID** in your **10FF profile description** so I can verify that this 10FF profile is yours.`
+          );
+        } else if (emoji === "0⃣") {
+          await message.channel.send(
+              `0⃣ :x: ${member}: You have to do **at least one test** to have a WPM role (competitions don't count).`
+          );
+        }
+
         await editMessage({
           embed: {
             color: colors.error,
@@ -126,6 +136,7 @@ module.exports = {
               `Please read https://github.com/wRadion/10FFDiscordBot for more help or contact **@wRadion** if this issue persist.`
           }
         });
+
         logFunction(`Done (${(Date.now() - startTime)/1000} sec)`);
         if (emoji) await message.react(emoji);
         await message.react('❌');
