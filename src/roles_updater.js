@@ -55,8 +55,7 @@ function getUserInfos(user, url, langId, logFunction) {
     userInfos.completionist = true;
     Object.keys(achievements).map(Number).forEach(id => {
       // Skip special-translator, supporter-100 && tests/comps taken
-      if (id < 18 && id > 33 && id !== 48 && !user_achievements.includes(id)) {
-        console.log(id);
+      if ((id < 18 || id > 33) && id !== 48 && !user_achievements.includes(id)) {
         userInfos.completionist = false;
       }
     });
