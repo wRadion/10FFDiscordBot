@@ -45,20 +45,29 @@ function getUserInfos(user, url, langId, logFunction) {
     }
 
     // Get achievement ids
-    const user_achievements = response.data.match(/var achievement_string =\s*"([\d,]+)"/)[1].split(',').map(Number);
+    const achievement_string = response.data.match(/var achievement_string =\s*"([\d,]+)"/);
 
-    // Specific roles (supporter + translator)
-    userInfos.supporter = user_achievements.includes(48);
-    userInfos.translator = user_achievements.includes(18);
+    if (achievement_string && achievement_string.length > 1) {
+      const user_achievements = achievement_string[1].split(',').map(Number);
 
-    // Completionist
-    userInfos.completionist = true;
-    Object.keys(achievements).map(Number).forEach(id => {
-      // Skip special-translator, supporter-100 && tests/comps taken
-      if ((id < 18 || id > 33) && id !== 48 && !user_achievements.includes(id)) {
-        userInfos.completionist = false;
-      }
-    });
+      // Specific roles (supporter + translator)
+      userInfos.supporter = user_achievements.includes(48);
+      userInfos.translator = user_achievements.includes(18);
+
+      // Completionist
+      userInfos.completionist = true;
+      Object.keys(achievements).map(Number).forEach(id => {
+        // Skip special-translator, supporter-100 && tests/comps taken
+        if ((id < 18 || id > 33) && id !== 48 && !user_achievements.includes(id)) {
+          userInfos.completionist = false;
+        }
+      });
+    } else {
+      // User has no achievements
+      userInfos.supporter = false
+      userInfos.translator = false
+      userInfos.completionist = false;
+    }
 
     // Fetch WPMs
     const reqUrl = `https://10fastfingers.com/users/get_graph_data/1/${userInfos.id}/${userInfos.langId}`;
