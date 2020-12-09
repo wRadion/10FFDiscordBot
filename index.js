@@ -29,15 +29,6 @@ client.on('ready', async () => {
 });
 
 process.on('SIGINT', () => {
-  if (process.env.OS !== 'Windows_NT') {
-    // Kill chrome processes
-    exec('pkill chrome');
-
-    // Delete /tmp puppeteer_dev_chrome profiles files
-    exec('rm -rf /tmp/puppeteer*');
-  }
-
-  // Destroy Discord Client
   client.destroy();
 
   console.log('Terminated gracefully.');
@@ -135,6 +126,12 @@ client.on('message', async (message) => {
       }
     });
     await message.delete();
+    return;
+  }
+
+  // Ignore banned users
+  if (Object.values(config.bannedUsers).some(id => user.id === id)) {
+    await message.react('🔇');
     return;
   }
 
