@@ -128,7 +128,6 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
 
       // Load HTML and get user WPM
       const $comp = cheerio.load(compResultPage);
-      userInfos.id = 'toto';
       const compWpm = parseInt($comp(`tr[user_id=${userInfos.id}] .wpm`).text());
 
       if (isNaN(compWpm)) {
