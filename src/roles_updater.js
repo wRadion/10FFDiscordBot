@@ -4,7 +4,7 @@ const cheerio = require('cheerio');
 const roles = require('../data/roles.json');
 const achievements = require('../data/achievements.json');
 
-function getUserInfos(user, url, langId, logFunction) {
+function getUserInfos(user, url, langId, compUrl, logFunction) {
   return new Promise(async (resolve, reject) => {
     const userInfos = {
       id: url.match(/(\d+)\/?$/)[1], // Get userId from 10FF profile URL
@@ -75,6 +75,7 @@ function getUserInfos(user, url, langId, logFunction) {
     if (!response) return;
 
     const data = response.data;
+    userInfos.langId = data.speedtest_id_active;
 
     // Get Max Norm/Adv score (last 400 tests)
     let [maxNorm, maxAdv] = [data.max_norm, data.max_adv].map(Number);
@@ -94,6 +95,52 @@ function getUserInfos(user, url, langId, logFunction) {
     userInfos.maxNorm = maxNorm;
     userInfos.maxAdv = maxAdv;
 
+    // Get competition wpm (if any is given)
+    if (compUrl) {
+      // Get comp hash
+      const hashId = compUrl.match(/([a-f0-9]+)\/?$/)[1];
+
+      // Get language
+      const { data: { Competition: compData } } = await axios.post(
+        'https://10fastfingers.com/competition/view',
+        `hash_id=${hashId}`,
+        { headers: {
+          'x-requested-with': 'XMLHttpRequest',
+        } }
+      ).catch(reject);
+
+      // Check if language is good
+      const compLangId = parseInt(compData.speedtest_id);
+
+      if (compLangId !== userInfos.langId) {
+        reject("The competition URL you provided is not in the right language.");
+        return;
+      }
+
+      // Get competition result
+      const { data: compResultPage } = await axios.post(
+        'https://10fastfingers.com/competitions/get_competition_rankings',
+        `hash_id=${hashId}`,
+        { headers: {
+          'x-requested-with': 'XMLHttpRequest',
+        } }
+      );
+
+      // Load HTML and get user WPM
+      const $comp = cheerio.load(compResultPage);
+      userInfos.id = 'toto';
+      const compWpm = parseInt($comp(`tr[user_id=${userInfos.id}] .wpm`).text());
+
+      if (isNaN(compWpm)) {
+        reject("You didn't participate in the competition you provided or an error occured while trying to get your WPM.");
+        return;
+      }
+
+      if (userInfos.maxNorm < compWpm) {
+        userInfos.maxNorm = compWpm;
+      }
+    }
+
     // Check Multilingual (at least 50 tests in 10 languages)
     userInfos.multilingual = data.languages_sorted.filter(a => parseInt(a['0'].anzahl) >= 50).length >= 10;
 
@@ -103,8 +150,8 @@ function getUserInfos(user, url, langId, logFunction) {
 }
 
 module.exports = {
-  getRolesToUpdate: function(user, member, url, langId, norm, adv, logFunction, callbackWarn) {
-    return getUserInfos(user, url, langId, logFunction).then((userInfos) => {
+  getRolesToUpdate: function(user, member, url, langId, norm, adv, compUrl, logFunction, callbackWarn) {
+    return getUserInfos(user, url, langId, compUrl, logFunction).then((userInfos) => {
       return new Promise(async (resolve, reject) => {
         const rolesToUpdate = {};
         rolesToUpdate.toAdd = [];

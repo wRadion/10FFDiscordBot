@@ -154,7 +154,7 @@ client.on('message', async (message) => {
   }
 
   // Init command
-  let url, language, norm, adv;
+  let url, language, norm, adv, compUrl;
   let error = null;
 
   // Automatic params assignment
@@ -167,6 +167,8 @@ client.on('message', async (message) => {
       if (!norm) norm = parseInt(arg);
       else if (!adv) adv = parseInt(arg);
       else error = `Unrecognized command argument: '${arg}'`;
+    } else if (arg.match(/^https:\/\/10fastfingers\.com\/competition\/[a-f0-9]+\/?$/)) {
+      compUrl = arg;
     } else error = `Unrecognized command argument: '${arg}'`;
   }
 
@@ -200,7 +202,8 @@ client.on('message', async (message) => {
     url: url,
     langId: language ? languages.indexOf(language) : 0, // Get language id
     norm: norm,
-    adv: adv
+    adv: adv,
+    compUrl: compUrl
   });
 
   if (position > 0) {

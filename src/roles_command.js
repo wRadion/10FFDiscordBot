@@ -4,7 +4,7 @@ const config = require('../data/config.json');
 const colors = require('../data/colors.json');
 
 module.exports = {
-  execute: function(server, { user, member, message, dm, url, langId, norm, adv }) {
+  execute: function(server, { user, member, message, dm, url, langId, norm, adv, compUrl }) {
     return new Promise(async (resolve) => {
       const startTime = Date.now();
 
@@ -34,7 +34,7 @@ module.exports = {
       logFunction('Processing request...');
 
       // Get roles (ids) to add/remove
-      await rolesUpdater.getRolesToUpdate(user, member, url, langId, norm, adv, logFunction,
+      await rolesUpdater.getRolesToUpdate(user, member, url, langId, norm, adv, compUrl, logFunction,
         // callback Warn
         async (maxNorm, maxAdv, wpmRoles, removedVerified) => {
           for (let id of Object.values(config.moderators)) {
