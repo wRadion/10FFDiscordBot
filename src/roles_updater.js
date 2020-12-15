@@ -27,7 +27,7 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
       // Reject Promise
       reject(
         "Couldn't verify your identity." +
-        ` Please write your Discord tag (**${user.tag}**)` +
+        ` Please write your Discord full tag (**${user.tag}**)` +
         ` OR your Discord ID (**${user.id}**) in your 10FF profile **description** and retry.;;👤`
       );
       return;
