@@ -1,6 +1,5 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
-const { exec } = require('child_process');
 
 const RequestQueue = require('./src/request_queue');
 
@@ -12,6 +11,8 @@ const roles = require('./data/roles.json');
 let server;
 let queue;
 let autoRolesChannel;
+
+let mutedUsers = [];
 
 client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -41,6 +42,11 @@ client.on('message', async (message) => {
   // If it's this bot, just skip
   if (user.id === client.user.id) return;
 
+  if (mutedUsers.includes(user.id) && message.channel.type !== 'dm') {
+    await message.delete();
+    return;
+  }
+
   if (message.channel.type === 'dm' && [config.users.wradion, ...Object.values(config.moderators)].includes(user.id)) {
     if (message.content === 'disable') {
       console.debug('Disabling the bot...');
@@ -64,10 +70,13 @@ client.on('message', async (message) => {
       });
       console.debug('Bot enabled!');
       return;
+    } else if (message.content.startsWith('mute')) {
+      const paramId = message.content.split(' ')[1];
+      mutedUsers.push(paramId);
+      return;
     }
     if (process.env.NODE_ENV === 'production') return;
-  }
-  else if (process.env.NODE_ENV !== 'production' || (message.channel.id !== config.channels.autoRoles && message.channel.id !== config.channels.rolesRequest)) {
+  } else if (process.env.NODE_ENV !== 'production' || (message.channel.id !== config.channels.autoRoles && message.channel.id !== config.channels.rolesRequest)) {
     return;
   }
 
