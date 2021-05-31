@@ -121,7 +121,7 @@ module.exports = {
 
         if (emoji === "👤") {
           await message.channel.send(
-              `👤 :x: ${member}: Please copy your **Discord full tag or ID** in your **10FF profile description** so I can verify that this 10FF profile is yours.`
+              `👤 :x: ${member}: Please copy your **Discord full tag** (e.g. \`Discord#0000\`)  **or ID** in your **10FF profile description** so I can verify that this 10FF profile is yours.`
           );
         } else if (emoji === "0⃣") {
           await message.channel.send(
