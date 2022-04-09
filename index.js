@@ -1,7 +1,11 @@
+require('dotenv').config();
+
 const Discord = require('discord.js');
 const client = new Discord.Client();
+const schedule = require('node-schedule');
 
 const RequestQueue = require('./src/request_queue');
+const LeaderboardWatcher = require('./src/leaderboard_watcher');
 
 const config = require('./data/config.json');
 const languages = require('./data/languages.json');
@@ -11,6 +15,7 @@ const roles = require('./data/roles.json');
 let server;
 let queue;
 let autoRolesChannel;
+let leaderboardWatcher;
 
 let mutedUsers = [];
 
@@ -26,12 +31,20 @@ client.on('ready', async () => {
   // Initialize RequestQueue
   queue = new RequestQueue(server);
 
+  // Schedule leaderboard watching
+  leaderboardWatcher = new LeaderboardWatcher(server, languages, config.users, config.channels.topsUpdates);
+  schedule.scheduleJob('* * 0 * * *', leaderboardWatcher.start);
+  schedule.scheduleJob('* * 12 * * *', leaderboardWatcher.start);
+  schedule.scheduleJob('* * * 1 * *', leaderboardWatcher.detectAccountsChange(true));
+  schedule.scheduleJob('* * * 8 * *', leaderboardWatcher.detectAccountsChange());
+  schedule.scheduleJob('* * * 15 * *', leaderboardWatcher.detectAccountsChange());
+  schedule.scheduleJob('* * * 22 * *', leaderboardWatcher.detectAccountsChange());
+
   console.log('Bot is Ready!');
 });
 
 process.on('SIGINT', () => {
   client.destroy();
-
   console.log('Terminated gracefully.');
   process.exit();
 });
@@ -209,7 +222,7 @@ client.on('message', async (message) => {
     message: message,
     dm: dm,
     url: url,
-    langId: language ? languages.indexOf(language) : 0, // Get language id
+    langId: language ? languages.findIndex(l => l.name === language) : 0, // Get language id
     norm: norm,
     adv: adv,
     compUrl: compUrl

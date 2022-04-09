@@ -2,14 +2,14 @@
   "guildId": "362145917933060097",
   "channels": {
     "autoRoles": "760777223128612924",
-    "rolesRequest": "392327059881328650"
+    "rolesRequest": "392327059881328650",
+    "topsUpdates": "763129411402727465"
   },
   "moderators": {
     "linsk": "299118381553156097"
   },
   "users": {
-    "wradion": "98073537113247744",
-    "consty": "549315704013455361"
+    "wradion": "98073537113247744"
   },
   "bannedUsers": {
   }
