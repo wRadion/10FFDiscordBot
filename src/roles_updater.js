@@ -1,8 +1,10 @@
 const axios = require('axios').default;
 const cheerio = require('cheerio');
+const moment = require('moment');
 
 const roles = require('../data/roles.json');
 const achievements = require('../data/achievements.json');
+const { userInfo } = require('os');
 
 function getUserInfos(user, url, langId, compUrl, logFunction) {
   return new Promise(async (resolve, reject) => {
@@ -62,6 +64,7 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
           userInfos.completionist = false;
         }
       });
+
     } else {
       // User has no achievements
       userInfos.supporter = false
@@ -142,6 +145,19 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
 
     // Check Multilingual (at least 50 tests in 10 languages)
     userInfos.multilingual = data.languages_sorted.filter(a => parseInt(a['0'].anzahl) >= 50).length >= 10;
+
+    // Year age member
+    let dateStr = $('#profile-data-table > tbody > tr:nth-child(3) > td:nth-child(2)').text();
+    if (dateStr.startsWith('on ')) {
+      const split = dateStr.substring(3).replaceAll(' ', '').split(',')
+      const month = Number({ 'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6, 'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12 }[split[0]]);
+      const day = Number(split[1].match(/(\d+)/)[0]) - 1;
+      const year = Number(split[2]);
+      userInfos.ageInYears = moment().diff([year, month - 1, day], 'years');
+      if (userInfos.ageInYears > 10) userInfos.ageInYears = 10;
+    } else {
+      userInfos.ageInYears = 0;
+    }
 
     // Resolve Promise
     resolve(userInfos);
@@ -239,6 +255,13 @@ module.exports = {
         specialRole(userInfos.translator, roles.translator);
         specialRole(userInfos.completionist, roles.completionist);
         specialRole(userInfos.multilingual, roles.multilingual);
+        if (userInfos.ageInYears > 0) {
+          const yearRole = roles.age[userInfos.ageInYears];
+          const yearBeforeRole = roles.age[userInfos.ageInYears - 1];
+          if (yearBeforeRole && currentRoles.includes(yearBeforeRole))
+            rolesToUpdate.toRemove(push(yearBeforeRole))
+          specialRole(true, yearRole);
+        }
 
         // Resolve Promise
         resolve(rolesToUpdate);

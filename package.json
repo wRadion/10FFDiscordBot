@@ -24,6 +24,7 @@
     "dotenv": "^16.0.0",
     "eslint": "^7.9.0",
     "googleapis": "^100.0.0",
+    "moment": "^2.29.2",
     "node-schedule": "^2.1.0"
   }
 }
