@@ -33,7 +33,6 @@ client.on('ready', async () => {
 
   // Schedule leaderboard watching
   leaderboardWatcher = new LeaderboardWatcher(server, languages, config.users, config.channels.topsUpdates);
-  leaderboardWatcher.start();
   schedule.scheduleJob('* 0 0 * * *', function() { leaderboardWatcher.start() });
   schedule.scheduleJob('* 0 12 * * *',function() { leaderboardWatcher.start() });
   schedule.scheduleJob('* 0 0 1 * *', function() { leaderboardWatcher.detectAccountsChange(true) });
