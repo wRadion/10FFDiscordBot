@@ -33,12 +33,12 @@ client.on('ready', async () => {
 
   // Schedule leaderboard watching
   leaderboardWatcher = new LeaderboardWatcher(server, languages, config.users, config.channels.topsUpdates);
-  schedule.scheduleJob('* 0 0 * * *', function() { leaderboardWatcher.start() });
-  schedule.scheduleJob('* 0 12 * * *',function() { leaderboardWatcher.start() });
-  schedule.scheduleJob('* 0 0 1 * *', function() { leaderboardWatcher.detectAccountsChange(true) });
-  schedule.scheduleJob('* 0 0 8 * *', function() { leaderboardWatcher.detectAccountsChange() });
-  schedule.scheduleJob('* 0 0 15 * *',function() { leaderboardWatcher.detectAccountsChange() });
-  schedule.scheduleJob('* 0 0 22 * *',function() { leaderboardWatcher.detectAccountsChange() });
+  schedule.scheduleJob('0 0 * * *', function() { leaderboardWatcher.start() });
+  schedule.scheduleJob('0 12 * * *',function() { leaderboardWatcher.start() });
+  schedule.scheduleJob('0 0 1 * *', function() { leaderboardWatcher.detectAccountsChange(true) });
+  schedule.scheduleJob('0 0 8 * *', function() { leaderboardWatcher.detectAccountsChange() });
+  schedule.scheduleJob('0 0 15 * *',function() { leaderboardWatcher.detectAccountsChange() });
+  schedule.scheduleJob('0 0 22 * *',function() { leaderboardWatcher.detectAccountsChange() });
 
   console.log('Bot is Ready!');
 });
