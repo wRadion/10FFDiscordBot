@@ -196,6 +196,7 @@ client.on('message', async (message) => {
 
   // Params validation
   if (!error) {
+    console.log(languages.find(l => l.name === language));
     if (!url) error = "Invalid or missing 10FF Profile URL";
     else if (language && !languages.find(l => l.name === language)) error = `Language \`${language}\` doesn't exist or is not supported`;
     else if (0 > norm || norm >= 250) error = 'Normal WPM should be between 0 and 250';
