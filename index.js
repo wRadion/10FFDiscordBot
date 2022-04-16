@@ -197,7 +197,7 @@ client.on('message', async (message) => {
   // Params validation
   if (!error) {
     if (!url) error = "Invalid or missing 10FF Profile URL";
-    else if (language && !languages.find(l => l.name === language)) error = `Language \`${language}\` doesn't exist or is not supported`;
+    else if (language && !languages.find(l => l !== null && l.name === language)) error = `Language \`${language}\` doesn't exist or is not supported`;
     else if (0 > norm || norm >= 250) error = 'Normal WPM should be between 0 and 250';
     else if (0 > adv || adv >= 220) error = 'Advanced WPM should be between 0 and 220';
   };
@@ -222,7 +222,7 @@ client.on('message', async (message) => {
     message: message,
     dm: dm,
     url: url,
-    langId: language ? languages.findIndex(l => l.name === language) : 0, // Get language id
+    langId: language ? languages.findIndex(l => l !== null && l.name === language) : 0, // Get language id
     norm: norm,
     adv: adv,
     compUrl: compUrl
