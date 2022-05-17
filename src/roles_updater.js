@@ -131,7 +131,7 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
 
       // Load HTML and get user WPM
       const $comp = cheerio.load(compResultPage);
-      const compWpm = parseInt($comp(`tr[user_id=${userInfos.id}] .wpm`).text());
+      const compWpm = parseInt($comp(`tr[user_id=${userInfos.id}] .wpm:first`).text());
 
       if (isNaN(compWpm)) {
         reject("You didn't participate in the competition you provided or an error occured while trying to get your WPM.");
