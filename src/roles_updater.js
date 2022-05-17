@@ -140,6 +140,7 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
 
       if (userInfos.maxNorm < compWpm) {
         userInfos.maxNorm = compWpm;
+        logFunction(`Competition WPM detected: ${userInfos.maxNorm}`);
       }
     }
 
@@ -260,7 +261,7 @@ module.exports = {
           const yearRole = roles.age[userInfos.ageInYears];
           const yearBeforeRole = roles.age[userInfos.ageInYears - 1];
           if (yearBeforeRole && currentRoles.includes(yearBeforeRole))
-            rolesToUpdate.toRemove(push(yearBeforeRole))
+            rolesToUpdate.toRemove.push(yearBeforeRole);
           specialRole(true, yearRole);
         }
 
