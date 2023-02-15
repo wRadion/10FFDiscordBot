@@ -36,7 +36,7 @@ module.exports = {
       // Get roles (ids) to add/remove
       await rolesUpdater.getRolesToUpdate(user, member, url, langId, norm, adv, compUrl, logFunction,
         // callback Warn
-        async (maxNorm, maxAdv, wpmRoles, removedVerified) => {
+        async (maxNorm, maxAdv, wpmRoles, removedVerified, removedVerifiedAdv) => {
           for (let id of Object.values(config.moderators)) {
             const moderatorMember = await server.members.fetch(id);
             const moderatorUser = moderatorMember.user;
@@ -51,7 +51,8 @@ module.exports = {
               `His max detected WPMs are **${maxNorm} WPM** and **${maxAdv} WPM (Advanced)**.\n` +
               `The following 200WPM+ roles were added:\n` +
               wpmRoles.map(r => `- **${r}**\n`).join('\n') +
-              (removedVerified ? `:negative_squared_cross_mark: His **Verified** role has been removed.` : `:question: He didn't have the **Verified** role.`)
+              (removedVerified ? `:negative_squared_cross_mark: His **Verified** role has been removed.` : `:question: He didn't have the **Verified** role.`) +
+              (removedVerifiedAdv ? `:negative_squared_cross_mark: His **Verified (Advanced)** role has been removed.` : `:question: He didn't have the **Verified (Advanced)** role.`)
             );
           }
         }

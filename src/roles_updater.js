@@ -211,8 +211,10 @@ module.exports = {
         // Remove Verified if new WPM > old WPM
         const oldNormWpm = oldNormRoleIndex > -1 ? parseInt(Object.keys(roles.norm)[oldNormRoleIndex].split('-')[0]) : 0;
         const oldAdvWpm = oldAdvRoleIndex > -1 ? parseInt(Object.keys(roles.adv)[oldAdvRoleIndex].split('-')[0]) : 0;
-        const removeVerified = currentRoles.includes(roles.verified) && ((norm * 10) > oldNormWpm || (adv * 10) > oldAdvWpm);
+        const removeVerified = currentRoles.includes(roles.verified) && ((norm * 10) > oldNormWpm);
         if (removeVerified) rolesToUpdate.toRemove.push(roles.verified);
+        const removeVerifiedAdv = currentRoles.includes(roles.verifiedAdv) && ((adv * 10) > oldAdvWpm);
+        if (removeVerifiedAdv) rolesToUpdate.toRemove.push(roles.verifiedAdv);
 
         // Tests/Compets Taken roles
         userInfos.testsTaken = userInfos.testsTaken > 10000 ? 10000 : Math.floor(userInfos.testsTaken / 2500) * 2500;
@@ -246,7 +248,7 @@ module.exports = {
             if (wpmAdvRoleIndex >= 0) wpmRoles.push(`${Object.keys(roles.adv)[wpmAdvRoleIndex]} WPM (Advanced)`)
           }
         }
-        if (wpmRoles.length > 0) callbackWarn(userInfos.maxNorm, userInfos.maxAdv, wpmRoles, removeVerified);
+        if (wpmRoles.length > 0) callbackWarn(userInfos.maxNorm, userInfos.maxAdv, wpmRoles, removeVerified, removeVerifiedAdv);
 
         // Specials Roles
         function specialRole(boolean, role) {
