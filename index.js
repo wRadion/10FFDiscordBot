@@ -163,7 +163,7 @@ client.on('message', async (message) => {
     try {
       member.roles.cache.forEach(role => {
         const rid = role.id.toString();
-        if (Object.values(roles.norm).includes(rid) || Object.values(roles.adv).includes(rid) || rid == roles.verified || rid == roles.verifiedAdv]) {
+        if (Object.values(roles.norm).includes(rid) || Object.values(roles.adv).includes(rid) || rid == roles.verified || rid == roles.verifiedAdv) {
           member.roles.remove(role.id);
         }
       });
