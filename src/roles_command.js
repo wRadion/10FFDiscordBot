@@ -21,7 +21,9 @@ module.exports = {
         // User can't recieve DMs
         botMessage = null;
         console.debug(`[${user.username}] ${e.name}: ${e.message}`);
-        await message.react('💬');
+        try {
+          await message.react('💬');
+        } catch {}
       }
 
       async function editMessage(msg) {
@@ -139,8 +141,14 @@ module.exports = {
         });
 
         logFunction(`Done (${(Date.now() - startTime)/1000} sec)`);
-        if (emoji) await message.react(emoji);
-        await message.react('❌');
+        if (emoji) {
+          try {
+            await message.react(emoji);
+          } catch {}
+        }
+        try {
+          await message.react('❌');
+        } catch {}
         resolve();
       });
     });
