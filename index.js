@@ -41,7 +41,7 @@ client.on('ready', async () => {
   schedule.scheduleJob('0 0 22 * *',function() { leaderboardWatcher.detectAccountsChange() });
 
   console.log('Bot is Ready!');
-  console.log('NODE_ENV = ' + process.env.NODE_END);
+  console.log('NODE_ENV = ' + process.env.NODE_ENV);
 });
 
 process.on('SIGINT', () => {
