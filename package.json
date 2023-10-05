@@ -18,12 +18,12 @@
   },
   "homepage": "https://github.com/wRadion/10FFDiscordBot#readme",
   "dependencies": {
+    "@googleapis/sheets": "^5.0.4",
     "axios": "^0.21.0",
     "cheerio": "^1.0.0-rc.3",
     "discord.js": "^12.5.3",
-    "dotenv": "^16.0.0",
+    "dotenv": "^16.0.3",
     "eslint": "^7.9.0",
-    "googleapis": "^100.0.0",
     "moment": "^2.29.2",
     "node-schedule": "^2.1.0"
   }

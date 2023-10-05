@@ -2,7 +2,9 @@ require('dotenv').config();
 
 const axios = require('axios').default;
 const cheerio = require('cheerio');
-const { google } = require('googleapis');
+const google = require('@googleapis/sheets');
+
+const languages = require('../data/languages.json');
 
 function capitalize(s) {
     return s[0].toUpperCase() + s.slice(1);
@@ -32,7 +34,7 @@ module.exports = class LeaderboardWatcher {
 
   async fetchGoogleSheetsInstance() {
     this.googleAuth = new google.auth.GoogleAuth({
-      keyFile: "../keys.json",
+      keyFile: "./keys.json",
       scopes: "https://www.googleapis.com/auth/spreadsheets"
     });
     const authClientObject = await this.googleAuth.getClient();
@@ -43,55 +45,9 @@ module.exports = class LeaderboardWatcher {
     await this.fetchGoogleSheetsInstance();
 
     for (const langObj of this.languages) {
-      const lang = langObj.name;
-      console.log(`Starting for language ${lang}...`);
-
-      const top50 = await this.getTop50Leaderboard(lang);
-
-      let records = null;
-      let message = '';
-      try {
-        records = await this.getRecords(lang);
-      } catch (err) {
-        console.log(err);
-        if (langObj.emoji)
-          message += langObj.emoji + ' ';
-        message += `__**${capitalize(lang)}**__ (_normal_)\n`;
-        message += `:x: There was an error fetching ${lang} spreadsheet.`;
-        await this.sendMessage(message);
-        continue;
-      }
-
-      const diff = await this.getDiff(top50, records);
-
-      if (diff.toAdd.length === 0 && diff.toUpdate.length === 0)
-        continue;
-
-      if (langObj.emoji)
-        message += langObj.emoji + ' ';
-      message += `__**${capitalize(lang)}**__ (_normal_)\n`;
-
-      for (const rec of diff.toAdd) {
-        console.log(`Inserted: ${JSON.stringify(rec)}`);
-
-        const wpm = Math.floor((rec.cpm + 2) / 5);
-        message += `New: **${rec.name}** \`${wpm} WPM (${rec.cpm})\` - https://10fastfingers.com/user/${rec.userId}\n`;
-      }
-      for (const rec of diff.toUpdate) {
-        console.log(`Updated: ${JSON.stringify(rec.old)}`);
-        console.log(`     to: ${JSON.stringify(rec.new)}`);
-
-        const oldWpm = Math.floor((rec.old.cpm + 2) / 5);
-        const newWpm = Math.floor((rec.new.cpm + 2) / 5);
-        if (rec.new.name !== rec.old.name) {
-          message += `Update + name change: **${rec.old.name} -> ${rec.new.name}**`;
-        } else {
-          message += `Update: **${rec.old.name}**`;
-        }
-        message += ` \`${oldWpm} -> ${newWpm} WPM (${rec.old.cpm} -> ${rec.new.cpm})\` - https://10fastfingers.com/user/${rec.old.userId}\n`;
-      }
-
-      await this.sendMessage(message);
+      this.processLang(langObj, false);
+      if (langObj.advStaffSheetId.length > 0)
+        this.processLang(langObj, true);
     }
   }
 
@@ -99,78 +55,136 @@ module.exports = class LeaderboardWatcher {
     await this.fetchGoogleSheetsInstance();
 
     for (const langObj of this.languages) {
-      const lang = langObj.name;
+      this.detectAccountsChangeLang(langObj, false, detectNameChange);
+      if (langObj.advStaffSheetId.length > 0)
+        this.detectAccountsChangeLang(langObj, true, detectNameChange);
+    }
+  }
 
-      let message = null;
-      let records = null;
+  async processLang(langObj, advanced) {
+    const lang = langObj.name;
+    console.log(`Starting for language ${lang}${advanced ? ' (Advanced)' : ' (Normal)'}...`);
+
+    const top20 = await this.getTop20Leaderboard(lang, advanced);
+
+    let records = null;
+    let message = '';
+    try {
+      records = await this.getRecords(lang, advanced);
+    } catch (err) {
+      console.log(err);
+      if (langObj.emoji)
+        message += langObj.emoji + ' ';
+      message += `__**${capitalize(lang)}**__ (_${advanced ? 'advanced' : 'normal'}_)\n`;
+      message += `:x: There was an error fetching ${lang} spreadsheet.`;
+      await this.sendMessage(message);
+      return;
+    }
+
+    const diff = await this.getDiff(top20, records);
+
+    if (diff.toAdd.length === 0 && diff.toUpdate.length === 0)
+      return;
+
+    if (langObj.emoji)
+      message += langObj.emoji + ' ';
+    message += `__**${capitalize(lang)}**__ (_${advanced ? 'advanced' : 'normal'}_)\n`;
+
+    for (const rec of diff.toAdd) {
+      console.log(`Inserted: ${JSON.stringify(rec)}`);
+
+      const wpm = Math.floor((rec.cpm + 2) / 5);
+      message += `New: **${rec.name}** \`${wpm} WPM (${rec.cpm})\` - https://10fastfingers.com/user/${rec.userId}\n`;
+    }
+    for (const rec of diff.toUpdate) {
+      console.log(`Updated: ${JSON.stringify(rec.old)}`);
+      console.log(`     to: ${JSON.stringify(rec.new)}`);
+
+      const oldWpm = Math.floor((rec.old.cpm + 2) / 5);
+      const newWpm = Math.floor((rec.new.cpm + 2) / 5);
+      if (rec.new.name !== rec.old.name) {
+        message += `Update + name change: **${rec.old.name} -> ${rec.new.name}**`;
+      } else {
+        message += `Update: **${rec.old.name}**`;
+      }
+      message += ` \`${oldWpm} -> ${newWpm} WPM (${rec.old.cpm} -> ${rec.new.cpm})\` - https://10fastfingers.com/user/${rec.old.userId}\n`;
+    }
+
+    await this.sendMessage(message);
+  }
+
+  async detectAccountsChangeLang(langObj, advanced, detectNameChange) {
+    const lang = langObj.name;
+
+    let message = null;
+    let records = null;
+
+    try {
+      records = await this.getRecords(lang, advanced);
+    } catch (err) {
+      console.log(err);
+      return;
+    }
+
+    console.log(`Looking for account changes for ${lang}...`);
+    for (const record of records) {
+      const url = `https://10fastfingers.com/user/${record.userId}`;
+      const wpm = Math.floor((record.cpm + 2) / 5);
+
+      let error = null;
+      let response = null;
 
       try {
-        records = await this.getRecords(lang);
+        response = await axios.get(url, { timeout: 3000 }).catch((err) => error = err);
+        if (!response || error) {
+          console.log(error.message);
+          continue;
+        }
       } catch (err) {
-        console.log(err);
+        console.log(err.message);
         continue;
       }
 
-      console.log(`Looking for account changes for ${lang}...`);
-      for (const record of records) {
-        const url = `https://10fastfingers.com/user/${record.userId}`;
-        const wpm = Math.floor((record.cpm + 2) / 5);
-
-        let error = null;
-        let response = null;
-
-        try {
-          response = await axios.get(url, { timeout: 3000 }).catch((err) => error = err);
-          if (!response || error) {
-            console.log(error.message);
-            continue;
-          }
-        } catch (err) {
-          console.log(err.message);
-          continue;
+      if (response.request.path !== `/user/${record.userId}`) {
+        if (!message) {
+          message = '';
+          if (langObj.emoji)
+            message += langObj.emoji + ' ';
+          message += `__**${capitalize(lang)}**__ (_${advanced ? 'advanced' : 'normal'}_)\n`;
         }
+        const newLine = `Account deleted: **${record.name}** \`${wpm} WPM (${record.cpm})\` - ${url}\n`;
+        if (message.length + newLine.length >= 2000) {
+          await this.sendMessage(message);
+          message = '';
+        }
+        message += newLine;
+        console.log(`Account deleted: ${JSON.stringify(record)}`);
+      } else if (detectNameChange) {
+        const $ = cheerio.load(response.data);
+        const username = $('#main-content > div > h2').text().replace(/  /g, '').split('\n')[2].trim();
 
-        if (response.request.path !== `/user/${record.userId}`) {
+        if (record.name !== username) {
           if (!message) {
             message = '';
             if (langObj.emoji)
               message += langObj.emoji + ' ';
-            message += `__**${capitalize(lang)}**__ (_normal_)\n`;
+            message += `__**${capitalize(lang)}**__ (_${advanced ? 'advanced' : 'normal'}_)\n`;
           }
-          const newLine = `Account deleted: **${record.name}** \`${wpm} WPM (${record.cpm})\` - ${url}\n`;
+          const newLine = `Account rename: ${record.name} -> **${username}** \`${wpm} WPM (${record.cpm})\` - ${url}\n`;
           if (message.length + newLine.length >= 2000) {
             await this.sendMessage(message);
             message = '';
           }
           message += newLine;
-          console.log(`Account deleted: ${JSON.stringify(record)}`);
-        } else if (detectNameChange) {
-          const $ = cheerio.load(response.data);
-          const username = $('#main-content > div > h2').text().replace(/  /g, '').split('\n')[2].trim();
-
-          if (record.name !== username) {
-            if (!message) {
-              message = '';
-              if (langObj.emoji)
-                message += langObj.emoji + ' ';
-              message += `__**${capitalize(lang)}**__ (_normal_)\n`;
-            }
-            const newLine = `Account rename: ${record.name} -> **${username}** \`${wpm} WPM (${record.cpm})\` - ${url}\n`;
-            if (message.length + newLine.length >= 2000) {
-              await this.sendMessage(message);
-              message = '';
-            }
-            message += newLine;
-            console.log(`Account rename: ${JSON.stringify(record)} to "${username}"`);
-          }
+          console.log(`Account rename: ${JSON.stringify(record)} to "${username}"`);
         }
       }
+    }
 
-      if (message) {
-        await this.sendMessage(message);
-      } else {
-        console.log(`No account changes detected for ${lang}.`);
-      }
+    if (message) {
+      await this.sendMessage(message);
+    } else {
+      console.log(`No account changes detected for ${lang}.`);
     }
   }
 
@@ -193,13 +207,13 @@ module.exports = class LeaderboardWatcher {
     return result;
   }
 
-  async getRecords(language) {
+  async getRecords(language, advanced) {
     const lang = this.languages.find(l => l.name === language);
     if (!lang) return [];
 
-    console.log(`Fetching spreadsheet data for ${lang.name}...`)
+    console.log(`Fetching spreadsheet data for ${lang.name}${advanced ? ' (advanced)' : ' (normal)'}...`)
     const readData = await this.googleSheetsInstance.spreadsheets.values.batchGet({
-      auth: this.googleAuth, spreadsheetId: lang.staffSheetId, ranges: ['C2:C', 'D2:D', 'E2:E']
+      auth: this.googleAuth, spreadsheetId: advanced ? lang.advStaffSheetId : lang.staffSheetId, ranges: ['C2:C', 'D2:D', 'E2:E']
     });
 
     if (readData.data && readData.data.valueRanges && readData.data.valueRanges.length === 3) {
@@ -250,7 +264,38 @@ module.exports = class LeaderboardWatcher {
       const userId = userCol.find('a').attr('href').split('/')[2];
       const cpm = Number($(row).find('td:nth-child(5)').text());
 
-      result.push({ cpm, name, userId, lang: language });
+      result.push({ cpm, name, userId, lang: language, advanced: false });
+    }
+
+    return result;
+  }
+
+  async getTop20Leaderboard(language, advanced) {
+    const langId = languages.findIndex(l => l !== null && l.name === language);
+    const url = `https://10fastfingers.com/speedtests/render_highscore_get_top_ranking/${langId}/${advanced ? '2' : '1'}`;
+
+    // Fetch page HTML
+    console.log('Fetching top20 leaderboard...');
+    let error = null;
+    let response = await axios.get(url, { timeout: 10000 }).catch((err) => error = err);
+    if (!response || error) {
+      console.log(error);
+      return [];
+    }
+
+    // Load HTML with cheerio
+    const $ = cheerio.load(response.data);
+
+    // Get top 20
+    let result = [];
+
+    const top20 = $('table tbody tr');
+    for (const row of top20) {
+      const name = $(row).find('td.username').text();
+      const userId = $(row).attr('user_id');
+      const cpm = parseInt($(row).find('td.wpm').attr('title'));
+
+      result.push({ cpm, name, userId, lang: language, advanced: advanced });
     }
 
     return result;
