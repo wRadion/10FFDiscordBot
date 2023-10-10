@@ -41,20 +41,26 @@ module.exports = class LeaderboardWatcher {
     this.googleSheetsInstance = google.sheets({ version: "v4", auth: authClientObject });
   }
 
-  async start() {
+  async start(startIndex, endIndex) {
     await this.fetchGoogleSheetsInstance();
 
-    for (const langObj of this.languages) {
+    for (let i = startIndex; i < endIndex; ++i) {
+      const langObj = this.languages[i];
+      if (langObj === null)
+        continue;
       this.processLang(langObj, false);
       if (langObj.advStaffSheetId.length > 0)
         this.processLang(langObj, true);
     }
   }
 
-  async detectAccountsChange(detectNameChange = false) {
+  async detectAccountsChange(startIndex, endIndex, detectNameChange = false) {
     await this.fetchGoogleSheetsInstance();
 
-    for (const langObj of this.languages) {
+    for (let i = startIndex; i < endIndex; ++i) {
+      const langObj = this.languages[i];
+      if (langObj === null)
+        continue;
       this.detectAccountsChangeLang(langObj, false, detectNameChange);
       if (langObj.advStaffSheetId.length > 0)
         this.detectAccountsChangeLang(langObj, true, detectNameChange);
@@ -76,7 +82,9 @@ module.exports = class LeaderboardWatcher {
       if (langObj.emoji)
         message += langObj.emoji + ' ';
       message += `__**${capitalize(lang)}**__ (_${advanced ? 'advanced' : 'normal'}_)\n`;
-      message += `:x: There was an error fetching ${lang} spreadsheet.`;
+      message += `:x: There was an error fetching ${lang} spreadsheet:\n\`\`\`\n`;
+      message += err;
+      message += '```';
       await this.sendMessage(message);
       return;
     }

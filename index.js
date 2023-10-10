@@ -33,12 +33,18 @@ client.on('ready', async () => {
 
   // Schedule leaderboard watching
   leaderboardWatcher = new LeaderboardWatcher(server, languages, config.users, config.channels.topsUpdates);
-  schedule.scheduleJob('0 0 * * *', function() { leaderboardWatcher.start() });
-  schedule.scheduleJob('0 12 * * *',function() { leaderboardWatcher.start() });
-  schedule.scheduleJob('0 0 1 * *', function() { leaderboardWatcher.detectAccountsChange(true) });
-  schedule.scheduleJob('0 0 8 * *', function() { leaderboardWatcher.detectAccountsChange() });
-  schedule.scheduleJob('0 0 15 * *',function() { leaderboardWatcher.detectAccountsChange() });
-  schedule.scheduleJob('0 0 22 * *',function() { leaderboardWatcher.detectAccountsChange() });
+  schedule.scheduleJob('0 0 * * *', function() { leaderboardWatcher.start(0, 28) });
+  schedule.scheduleJob('2 0 * * *', function() { leaderboardWatcher.start(28, 57) });
+  schedule.scheduleJob('0 12 * * *',function() { leaderboardWatcher.start(0, 28) });
+  schedule.scheduleJob('2 12 * * *',function() { leaderboardWatcher.start(28, 57) });
+  schedule.scheduleJob('0 0 1 * *', function() { leaderboardWatcher.detectAccountsChange(0, 28, true) });
+  schedule.scheduleJob('2 0 1 * *', function() { leaderboardWatcher.detectAccountsChange(28, 57, true) });
+  schedule.scheduleJob('0 0 8 * *', function() { leaderboardWatcher.detectAccountsChange(0, 28) });
+  schedule.scheduleJob('2 0 8 * *', function() { leaderboardWatcher.detectAccountsChange(28, 57) });
+  schedule.scheduleJob('0 0 15 * *',function() { leaderboardWatcher.detectAccountsChange(0, 28) });
+  schedule.scheduleJob('2 0 15 * *',function() { leaderboardWatcher.detectAccountsChange(28, 57) });
+  schedule.scheduleJob('0 0 22 * *',function() { leaderboardWatcher.detectAccountsChange(0, 28) });
+  schedule.scheduleJob('2 0 22 * *',function() { leaderboardWatcher.detectAccountsChange(28, 57) });
 
   console.log('Bot is Ready!');
   console.log('NODE_ENV = ' + process.env.NODE_ENV);
