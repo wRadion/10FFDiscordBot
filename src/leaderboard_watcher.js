@@ -89,9 +89,9 @@ module.exports = class LeaderboardWatcher {
       return;
     }
 
-    const diff = await this.getDiff(top20, records);
+    const diff = await this.getDiff(top20, records, lang);
 
-    if (diff.toAdd.length === 0 && diff.toUpdate.length === 0)
+    if (diff.toAdd.length === 0 && diff.toUpdate.length === 0 && diff.english180.length === 0)
       return;
 
     if (langObj.emoji)
@@ -116,6 +116,12 @@ module.exports = class LeaderboardWatcher {
         message += `Update: **${rec.old.name}**`;
       }
       message += ` \`${oldWpm} -> ${newWpm} WPM (${rec.old.cpm} -> ${rec.new.cpm})\` - https://10fastfingers.com/user/${rec.old.userId}\n`;
+    }
+    for (const rec of diff.english180) {
+      console.log(`English 180 WPM: ${JSON.stringify(rec)}`);
+
+      const wpm = Math.floor((rec.cpm + 2) / 5);
+      message += `180+ WPM: **${rec.name}** \`${wpm} WPM (${rec.cpm})\` - https://10fastfingers.com/user/${rec.userId}\n`;
     }
 
     await this.sendMessage(message);
@@ -196,19 +202,25 @@ module.exports = class LeaderboardWatcher {
     }
   }
 
-  async getDiff(top50, records) {
-    const result = { toAdd: [], toUpdate: [] }
+  async getDiff(top20, records, lang) {
+    const result = { toAdd: [], toUpdate: [], english180: [] }
 
-    for (const rec of top50) {
-      if (rec.cpm <= records[0].cpm && records.length >= 100) continue;
+    for (const rec of top20) {
+      if (rec.cpm <= records[0].cpm && records.length >= 100 && !(lang === "english" && rec.wpm >= 900)) continue;
 
       const inRecords = records.find(r => r.userId === rec.userId);
       if (inRecords) {
         if (rec.cpm > inRecords.cpm) {
           result.toUpdate.push({ old: inRecords, new: rec });
+          continue;
         }
       } else {
         result.toAdd.push(rec);
+        continue;
+      }
+      if (lang === "english" && rec.cpm >= 900) {
+        result.english180.push(rec);
+        continue;
       }
     }
 
