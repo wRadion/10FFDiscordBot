@@ -46,7 +46,7 @@ module.exports = class LeaderboardWatcher {
 
     for (let i = startIndex; i < endIndex; ++i) {
       const langObj = this.languages[i];
-      if (langObj === null)
+      if (langObj === null || langObj === undefined)
         continue;
       this.processLang(langObj, false);
       if (langObj.advStaffSheetId.length > 0)
@@ -206,7 +206,7 @@ module.exports = class LeaderboardWatcher {
     const result = { toAdd: [], toUpdate: [], english180: [] }
 
     for (const rec of top20) {
-      if (rec.cpm <= records[0].cpm && records.length >= 100 && !(lang === "english" && rec.wpm >= 900)) continue;
+      if (rec.cpm <= records[0].cpm && records.length >= 100 && !(lang === "english" && rec.cpm >= 900)) continue;
 
       const inRecords = records.find(r => r.userId === rec.userId);
       if (inRecords) {
