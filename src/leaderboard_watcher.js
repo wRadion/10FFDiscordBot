@@ -206,21 +206,21 @@ module.exports = class LeaderboardWatcher {
     const result = { toAdd: [], toUpdate: [], english180: [] }
 
     for (const rec of top20) {
-      if (rec.cpm <= records[0].cpm && records.length >= 100 && !(lang === "english" && rec.cpm >= 900)) continue;
-
       const inRecords = records.find(r => r.userId === rec.userId);
+
+      if (rec.cpm <= records[0].cpm && records.length >= 100) {
+        if (!inRecords && lang === "english" && rec.cpm >= 900) {
+          result.english180.push(rec);
+        }
+        continue;
+      }
+
       if (inRecords) {
         if (rec.cpm > inRecords.cpm) {
           result.toUpdate.push({ old: inRecords, new: rec });
-          continue;
         }
       } else {
         result.toAdd.push(rec);
-        continue;
-      }
-      if (lang === "english" && rec.cpm >= 900) {
-        result.english180.push(rec);
-        continue;
       }
     }
 
