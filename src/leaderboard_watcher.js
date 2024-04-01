@@ -20,6 +20,8 @@ module.exports = class LeaderboardWatcher {
     this.users = users;
     this.channelId = channelId;
     this.channel = null;
+    this.hasRecordUpdates = false;
+    this.hasAccountChanges = false;
   }
 
   async sendDebug(message) {
@@ -47,6 +49,7 @@ module.exports = class LeaderboardWatcher {
 
   async start(startIndex, endIndex) {
     await this.fetchGoogleSheetsInstance();
+    this.hasRecordUpdates = false;
 
     for (let i = startIndex; i < endIndex; ++i) {
       const langObj = this.languages[i];
@@ -56,10 +59,15 @@ module.exports = class LeaderboardWatcher {
       if (langObj.advStaffSheetId.length > 0)
         this.processLang(langObj, true);
     }
+
+    if (!this.hasRecordUpdates) {
+      await this.sendMessage("_No update detected for today._");
+    }
   }
 
   async detectAccountsChange(startIndex, endIndex, detectNameChange = false) {
     await this.fetchGoogleSheetsInstance();
+    this.hasAccountChanges = false;
 
     for (let i = startIndex; i < endIndex; ++i) {
       const langObj = this.languages[i];
@@ -68,6 +76,10 @@ module.exports = class LeaderboardWatcher {
       this.detectAccountsChangeLang(langObj, false, detectNameChange);
       if (langObj.advStaffSheetId.length > 0)
         this.detectAccountsChangeLang(langObj, true, detectNameChange);
+    }
+
+    if (!this.hasAccountChanges) {
+      await this.sendMessage(`_No account changes detected for today._`);
     }
   }
 
@@ -95,10 +107,9 @@ module.exports = class LeaderboardWatcher {
 
     const diff = await this.getDiff(top20, records, lang);
 
-    if (diff.toAdd.length === 0 && diff.toUpdate.length === 0 && diff.english180.length === 0) {
-      await this.sendMessage("_No update detected for today._");
+    if (diff.toAdd.length === 0 && diff.toUpdate.length === 0 && diff.english180.length === 0)
       return;
-    }
+    this.hasRecordUpdates = true;
 
     if (langObj.emoji)
       message += langObj.emoji + ' ';
@@ -202,10 +213,10 @@ module.exports = class LeaderboardWatcher {
     }
 
     if (message) {
+      this.hasAccountChanges = true;
       await this.sendMessage(message);
     } else {
       console.log(`No account changes detected for ${lang}.`);
-      await this.sendMessage(`_No account changes detected for ${lang}._`);
     }
   }
 
