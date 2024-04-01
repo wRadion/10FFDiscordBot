@@ -22,12 +22,16 @@ module.exports = class LeaderboardWatcher {
     this.channel = null;
   }
 
+  async sendDebug(message) {
+    const user = await this.discordServer.members.fetch(this.users.wradion);
+    const channel = await user.createDM();
+    await channel.send(message.trim());
+  }
+
   async sendMessage(message) {
     if (!this.discordServer) return;
     if (!this.channel) {
       this.channel = await this.discordServer.channels.resolve(this.channelId);
-      //const user = await this.discordServer.members.fetch(this.users.wradion);
-      //this.channel = await user.createDM();
     }
     await this.channel.send(message.trim());
   }
@@ -91,8 +95,10 @@ module.exports = class LeaderboardWatcher {
 
     const diff = await this.getDiff(top20, records, lang);
 
-    if (diff.toAdd.length === 0 && diff.toUpdate.length === 0 && diff.english180.length === 0)
+    if (diff.toAdd.length === 0 && diff.toUpdate.length === 0 && diff.english180.length === 0) {
+      await this.sendMessage("_No update detected for today._");
       return;
+    }
 
     if (langObj.emoji)
       message += langObj.emoji + ' ';
@@ -199,6 +205,7 @@ module.exports = class LeaderboardWatcher {
       await this.sendMessage(message);
     } else {
       console.log(`No account changes detected for ${lang}.`);
+      await this.sendMessage(`_No account changes detected for ${lang}._`);
     }
   }
 
@@ -206,10 +213,12 @@ module.exports = class LeaderboardWatcher {
     const result = { toAdd: [], toUpdate: [], english180: [] }
 
     for (const rec of top20) {
-      const inRecords = records.find(r => r.userId === rec.userId);
+      const inRecords = records.find(r => r.userId == rec.userId);
 
       if (rec.cpm <= records[0].cpm && records.length >= 100) {
         if (!inRecords && lang === "english" && rec.cpm >= 900) {
+          await this.sendDebug(`\`${rec.name} (${rec.userId}) was not found in the English leaderboard`);
+          await this.sendDebug(`Here is the list of the leaderboard:\n\`\`\`\n${JSON.stringify(records, null, 2)}\n\`\`\``);
           result.english180.push(rec);
         }
         continue;
@@ -244,7 +253,7 @@ module.exports = class LeaderboardWatcher {
       let records = [];
       for (let i = 0; i < cpms.length; ++i) {
         if (!cpms[i]) continue;
-        records.push({ cpm: Number(cpms[i]), name: names[i], userId: userIds[i].split('/')[4] })
+        records.push({ cpm: Number(cpms[i]), name: names[i], userId: userIds[i].split('user/')[1].split('/')[0] })
       }
       return records.slice(0, 100).reverse();
     } else {
