@@ -49,36 +49,40 @@ module.exports = class LeaderboardWatcher {
 
   async start(startIndex, endIndex) {
     await this.fetchGoogleSheetsInstance();
-    this.hasRecordUpdates = false;
+
+    if (startIndex === 0)
+      this.hasRecordUpdates = false;
 
     for (let i = startIndex; i < endIndex; ++i) {
       const langObj = this.languages[i];
       if (langObj === null || langObj === undefined)
         continue;
-      this.processLang(langObj, false);
+      await this.processLang(langObj, false);
       if (langObj.advStaffSheetId.length > 0)
-        this.processLang(langObj, true);
+        await this.processLang(langObj, true);
     }
 
-    if (!this.hasRecordUpdates) {
+    if (!this.hasRecordUpdates && endIndex === 57) {
       await this.sendMessage("_No update detected for today._");
     }
   }
 
   async detectAccountsChange(startIndex, endIndex, detectNameChange = false) {
     await this.fetchGoogleSheetsInstance();
-    this.hasAccountChanges = false;
+
+    if (startIndex === 0)
+      this.hasAccountChanges = false;
 
     for (let i = startIndex; i < endIndex; ++i) {
       const langObj = this.languages[i];
       if (langObj === null)
         continue;
-      this.detectAccountsChangeLang(langObj, false, detectNameChange);
+      await this.detectAccountsChangeLang(langObj, false, detectNameChange);
       if (langObj.advStaffSheetId.length > 0)
-        this.detectAccountsChangeLang(langObj, true, detectNameChange);
+        await this.detectAccountsChangeLang(langObj, true, detectNameChange);
     }
 
-    if (!this.hasAccountChanges) {
+    if (!this.hasAccountChanges && endIndex === 57) {
       await this.sendMessage(`_No account changes detected for today._`);
     }
   }
@@ -228,8 +232,8 @@ module.exports = class LeaderboardWatcher {
 
       if (rec.cpm <= records[0].cpm && records.length >= 100) {
         if (!inRecords && lang === "english" && rec.cpm >= 900) {
-          await this.sendDebug(`\`${rec.name} (${rec.userId}) was not found in the English leaderboard`);
-          await this.sendDebug(`Here is the list of the leaderboard:\n\`\`\`\n${JSON.stringify(records, null, 2)}\n\`\`\``);
+          await this.sendDebug(`\`${rec.name} (${rec.userId}) was not found in the English leaderboard\``);
+          await this.sendDebug(`\n\`\`\`\n${JSON.stringify(records.map(r => `${r.name} (${r.userId})`), null, 2)}\n\`\`\``);
           result.english180.push(rec);
         }
         continue;
