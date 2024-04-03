@@ -233,7 +233,7 @@ module.exports = class LeaderboardWatcher {
       if (rec.cpm <= records[0].cpm && records.length >= 100) {
         if (!inRecords && lang === "english" && rec.cpm >= 900) {
           await this.sendDebug(`\`${rec.name} (${rec.userId}) was not found in the English leaderboard\``);
-          await this.sendDebug(`\n\`\`\`\n${JSON.stringify(records.map(r => `${r.name} (${r.userId})`), null, 2)}\n\`\`\``);
+          await this.sendDebug(`\n\`\`\`\n${records.map(r => `"${r.userId}"`).join('\n')}\n\`\`\``);
           result.english180.push(rec);
         }
         continue;
