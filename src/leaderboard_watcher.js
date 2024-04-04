@@ -232,8 +232,6 @@ module.exports = class LeaderboardWatcher {
 
       if (rec.cpm <= records[0].cpm && records.length >= 100) {
         if (!inRecords && lang === "english" && rec.cpm >= 900) {
-          await this.sendDebug(`\`${rec.name} (${rec.userId}) was not found in the English leaderboard\``);
-          await this.sendDebug(`\n\`\`\`\n${records.map(r => `"${r.userId}"`).join('\n')}\n\`\`\``);
           result.english180.push(rec);
         }
         continue;
@@ -270,7 +268,7 @@ module.exports = class LeaderboardWatcher {
         if (!cpms[i]) continue;
         records.push({ cpm: Number(cpms[i]), name: names[i], userId: userIds[i].split('user/')[1].split('/')[0] })
       }
-      return records.slice(0, 100).reverse();
+      return records.reverse();
     } else {
       console.log('Error while fetching spreadsheet data:');
       console.log(readData);
