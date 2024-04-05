@@ -268,6 +268,8 @@ module.exports = class LeaderboardWatcher {
         if (!cpms[i]) continue;
         records.push({ cpm: Number(cpms[i]), name: names[i], userId: userIds[i].split('user/')[1].split('/')[0] })
       }
+      if (lang.name !== "english")
+        records = records.slice(0, 100);
       return records.reverse();
     } else {
       console.log('Error while fetching spreadsheet data:');
