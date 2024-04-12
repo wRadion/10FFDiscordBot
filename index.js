@@ -95,11 +95,11 @@ client.on('message', async (message) => {
       const paramId = message.content.split(' ')[1];
       mutedUsers.push(paramId);
       return;
-    } else if (message.content.startsWith('comp')) {
+    } /*else if (message.content.startsWith('comp')) {
       const args = message.content.split(/\s+/);
       args.shift();
       CompCreator.createComp(args[0]);
-    }
+    }*/
     if (process.env.NODE_ENV === 'production') return;
   } else if (process.env.NODE_ENV !== 'production' || (message.channel.id !== config.channels.autoRoles && message.channel.id !== config.channels.rolesRequest)) {
     return;
