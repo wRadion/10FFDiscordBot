@@ -6,6 +6,7 @@ const schedule = require('node-schedule');
 
 const RequestQueue = require('./src/request_queue');
 const LeaderboardWatcher = require('./src/leaderboard_watcher');
+//const CompCreator = require('./src/comp_creator');
 
 const config = require('./data/config.json');
 const languages = require('./data/languages.json');
@@ -94,6 +95,10 @@ client.on('message', async (message) => {
       const paramId = message.content.split(' ')[1];
       mutedUsers.push(paramId);
       return;
+    } else if (message.content.startsWith('comp')) {
+      const args = message.content.split(/\s+/);
+      args.shift();
+      CompCreator.createComp(args[0]);
     }
     if (process.env.NODE_ENV === 'production') return;
   } else if (process.env.NODE_ENV !== 'production' || (message.channel.id !== config.channels.autoRoles && message.channel.id !== config.channels.rolesRequest)) {
