@@ -9,9 +9,9 @@ const LeaderboardWatcher = require('./src/leaderboard_watcher');
 //const CompCreator = require('./src/comp_creator');
 
 const config = require('./data/config.json');
-const languages = require('./data/languages.json');
-const colors = require('./data/colors.json');
-const roles = require('./data/roles.json');
+const LANGUAGES = require('./data/languages.json');
+const COLORS = require('./data/colors.json');
+const ROLES = require('./data/roles.json');
 
 let server;
 let queue;
@@ -33,7 +33,7 @@ client.on('ready', async () => {
   queue = new RequestQueue(server);
 
   // Schedule leaderboard watching
-  leaderboardWatcher = new LeaderboardWatcher(server, languages, config.users, config.channels.topsUpdates);
+  leaderboardWatcher = new LeaderboardWatcher(server, config.users, config.channels.topsUpdates);
   schedule.scheduleJob('0 0 * * *', function() { leaderboardWatcher.start(0, 28) });
   schedule.scheduleJob('2 0 * * *', function() { leaderboardWatcher.start(28, 57) });
   schedule.scheduleJob('0 12 * * *',function() { leaderboardWatcher.start(0, 28) });
@@ -73,7 +73,7 @@ client.on('message', async (message) => {
       console.debug('Disabling the bot...');
       await autoRolesChannel.send({
         embed: {
-          color: colors.warning,
+          color: COLORS.warning,
           description: '⚠ Bot is now disabled due to maintenance.'
         }
       });
@@ -85,7 +85,7 @@ client.on('message', async (message) => {
       await autoRolesChannel.updateOverwrite(server.roles.everyone, { SEND_MESSAGES: null });
       await autoRolesChannel.send({
         embed: {
-          color: colors.success,
+          color: COLORS.success,
           description: ':white_check_mark: Bot is now enabled!'
         }
       });
@@ -137,7 +137,7 @@ client.on('message', async (message) => {
         // Command is not !roles, channel is right channel, user is not bot or wRadion
         await send({
           embed: {
-            color: colors.error,
+            color: COLORS.error,
             description: `:no_entry: You can only use the \`!roles\` command inside the ${autoRolesChannel} channel.`
           }
         });
@@ -155,7 +155,7 @@ client.on('message', async (message) => {
     // Command is !roles, channel is rolesRequest channel
     await send({
       embed: {
-        color: colors.error,
+        color: COLORS.error,
         description: `:no_entry: You must use the \`!roles\` command inside the ${autoRolesChannel} channel.`
       }
     });
@@ -175,7 +175,7 @@ client.on('message', async (message) => {
     try {
       member.roles.cache.forEach(role => {
         const rid = role.id.toString();
-        if (Object.values(roles.norm).includes(rid) || Object.values(roles.adv).includes(rid) || rid == roles.verified || rid == roles.verifiedAdv) {
+        if (Object.values(ROLES.norm).includes(rid) || Object.values(ROLES.adv).includes(rid) || rid == ROLES.verified || rid == ROLES.verifiedAdv) {
           member.roles.remove(role.id);
         }
       });
@@ -209,7 +209,7 @@ client.on('message', async (message) => {
   // Params validation
   if (!error) {
     if (!url) error = "Invalid or missing 10FF Profile URL";
-    else if (language && !languages.find(l => l !== null && l.name === language)) error = `Language \`${language}\` doesn't exist or is not supported`;
+    else if (language && !LANGUAGES.find(l => l !== null && l.name === language)) error = `Language \`${language}\` doesn't exist or is not supported`;
     else if (0 > norm || norm >= 250) error = 'Normal WPM should be between 0 and 250';
     else if (0 > adv || adv >= 220) error = 'Advanced WPM should be between 0 and 220';
   };
@@ -218,7 +218,7 @@ client.on('message', async (message) => {
   if (error) {
     await send({
       embed: {
-        color: colors.error,
+        color: COLORS.error,
         description: `:x: **Error:** ${error}.\n\n` +
           `Please read https://github.com/wRadion/10FFDiscordBot for more help.`
       }
@@ -234,7 +234,7 @@ client.on('message', async (message) => {
     message: message,
     dm: dm,
     url: url,
-    langId: language ? languages.findIndex(l => l !== null && l.name === language) : 0, // Get language id
+    langId: language ? LANGUAGES.findIndex(l => l !== null && l.name === language) : 0, // Get language id
     norm: norm,
     adv: adv,
     compUrl: compUrl
@@ -243,7 +243,7 @@ client.on('message', async (message) => {
   if (position > 0) {
     await send({
       embed: {
-        color: colors.info,
+        color: COLORS.info,
         description: `:information_source: Your request has been registered. You're in position **#${position}** in the queue.`
       }
     });
