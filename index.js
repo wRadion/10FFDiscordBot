@@ -95,6 +95,21 @@ client.on('message', async (message) => {
       const paramId = message.content.split(' ')[1];
       mutedUsers.push(paramId);
       return;
+    } else if (message.content.startsWith('run 1')) {
+      console.log('Starting the leaderboard watcher manually...');
+      console.log('First batch');
+      await message.reply('Starting the leaderboard, first batch (0, 28)...');
+      await leaderboardWatcher.start(0, 28);
+      await message.reply('Done');
+      console.log('First batch done.');
+    } else if (message.content.startsWith('run 2')) {
+      console.log('Starting the leaderboard watcher manually...');
+      console.log('Second batch');
+      await message.reply('Starting the leaderboard, second batch (28, 57)...');
+      await leaderboardWatcher.start(28, 57);
+      await message.reply('Done');
+      console.log('Second batch done.');
+      return;
     } /*else if (message.content.startsWith('comp')) {
       const args = message.content.split(/\s+/);
       args.shift();
