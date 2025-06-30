@@ -198,7 +198,21 @@ module.exports = class LeaderboardWatcher {
         message += `https://10fastfingers.com/competition/${rec.compId}`;
     }
 
-    await this.sendMessage(message);
+    if (message.length < 2000) {
+      await this.sendMessage(message);
+    } else {
+      let msg = '';
+      const lines = message.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        if (msg.length + lines[i].length > 2000) {
+          await this.sendMessage(msg);
+          msg = '';
+        }
+        msg += lines[i] + '\n';
+      }
+      if (msg.length > 0)
+        await this.sendMessage(msg);
+    }
   }
 
   async detectAccountsChangeLang(langObj, advanced, detectNameChange) {
