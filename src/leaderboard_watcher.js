@@ -94,6 +94,8 @@ module.exports = class LeaderboardWatcher {
         }
       }
 
+      allRecords = allRecords.filter(r => allRecords.filter(cr => cr.userId === r.userId && cr.wpm > r.wpm).length === 0);
+
       if (allRecords.length > 0) {
         await this.processLang(LANGUAGES[i], false, allRecords);
       }
