@@ -105,3 +105,4 @@ dist
 
 keys.json
 deploy.sh
+data/competitions.json
