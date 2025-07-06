@@ -35,7 +35,7 @@ client.on('ready', async () => {
   // Schedule leaderboard watching
   leaderboardWatcher = new LeaderboardWatcher(server, config.users, config.channels.topsUpdates);
 
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV === "production") {
     schedule.scheduleJob('0 0 * * *', function() { leaderboardWatcher.start(0, 28) });
     schedule.scheduleJob('2 0 * * *', function() { leaderboardWatcher.start(28, 57) });
     schedule.scheduleJob('0 12 * * *',function() { leaderboardWatcher.start(0, 28) });
