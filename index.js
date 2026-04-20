@@ -211,7 +211,7 @@ client.on('message', async (message) => {
 
   // Automatic params assignment
   for (const arg of args) {
-    if (arg.match(/^https:\/\/10fastfingers\.com\/user\/\d+\/?$/)) {
+    if (arg.match(/^https:\/\/10fastfingers\.com\/fr\/user\/.+\/?$/)) {
       url = arg;
     } else if (arg.match(/^[a-zA-Z_]+$/)) {
       language = arg.toLowerCase();
