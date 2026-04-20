@@ -10,11 +10,12 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
   return new Promise(async (resolve, reject) => {
     const cleanUrl = url.endsWith('/') ? url.slice(0, url.length - 1) : url;
     const split = cleanUrl.split('/');
+    const langIso = url.match(/10fastfingers\.com\/([^\/]+)\/user/)[1];
 
     const userInfos = {
-      name: split.reverse()[0].toLowerCase(),
+      name: split.reverse()[0].toLowerCase().replace('-', '_'),
       langId: langId,
-      langIso: langId > 0 ? LANGUAGES[langId].iso : (split.length > 5 ? split[3] : null)
+      langIso: langId > 0 ? LANGUAGES[langId].iso : (langIso ?? null)
     };
 
     // Fetch page HTML
@@ -53,6 +54,7 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
     // Fetch WPMs
     const str = Array.from(response.data.matchAll(/\\\"id\\\":(\d+),\\\"username\\\":\\\"([^\\]+)\\\"/g));
     const ids = Object.fromEntries(str.map(res => [res[2].toLowerCase(), Number(res[1])]));
+    logFunction("Ids: " + ids);
     const userId = ids[userInfos.name];
 
     logFunction(`fetching wpms for ${userId} in lang ${userInfos.langIso}`);
