@@ -50,17 +50,18 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
     }
 
     // Fetch WPMs
-    console.log(response.data);
     const str = response.data.matchAll(/\\\"id\\\":(\d+),\\\"username\\\":\\\"([^\\]+)\\\"/g);
-    console.log(str);
+    logFunction(str);
     const ids = Object.fromEntries(str.map(res => [res[2].toLowerCase(), Number(res[1])]));
 
+    logFunction("fetching wpms...");
     const data = await fetch(`https://api.10fastfingers.com/game-mode/typing-test-results/flat-stats/${ids[userInfos.name]}${userInfos.langIso ? '?languageIso=' + userInfos.langIso : ''}`);
     const wpms = (await data.json()).map(d => ({ wpm: d.wpm, mode: d.typingMode })).sort((a, b) => b.wpm - a.wpm);
 
     // Set max WPMs user infos
     userInfos.maxNorm = wpms.find(w => w.mode === 'normal').wpm;
     userInfos.maxAdv = wpms.find(w => w.mode === 'advanced').wpm;
+    logFunction("wpms fetched");
 
     // Get competition wpm (if any is given)
     // if (compUrl) {
@@ -112,6 +113,7 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
     // userInfos.multilingual = data.languages_sorted.filter(a => parseInt(a['0'].anzahl) >= 50).length >= 10;
 
     // Year age member
+    logFunction("fetching age...");
     let dateStr = $('time[data-testid="DateTime-root"]').attr('datetime');
     if (dateStr && dateStr.length > 0) {
       const date = new Date(dateStr);
@@ -122,6 +124,7 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
     } else {
       userInfos.ageInYears = 0;
     }
+    logFunction("age fetched");
 
     // Resolve Promise
     resolve(userInfos);
@@ -150,6 +153,8 @@ module.exports = {
           reject(`You can't have the **${adv}-${adv+9} WPM (Advanced)** role as your detected max advanced WPM is **${userInfos.maxAdv} WPM**.;;🚫`);
           return;
         }
+
+        logFunction("roles stuff...");
 
         // Get current roles
         const currentRoles = member.roles.cache.map(role => role.id);
@@ -230,6 +235,8 @@ module.exports = {
             rolesToUpdate.toRemove.push(yearBeforeRole);
           specialRole(true, yearRole);
         }
+
+        logFunction("roles stuff done");
 
         // Resolve Promise
         resolve(rolesToUpdate);
