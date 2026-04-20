@@ -53,10 +53,13 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
     // Fetch WPMs
     const str = Array.from(response.data.matchAll(/\\\"id\\\":(\d+),\\\"username\\\":\\\"([^\\]+)\\\"/g));
     const ids = Object.fromEntries(str.map(res => [res[2].toLowerCase(), Number(res[1])]));
+    const userId = ids[userInfos.name];
 
-    logFunction("fetching wpms...");
-    const data = await fetch(`https://api.10fastfingers.com/game-mode/typing-test-results/flat-stats/${ids[userInfos.name]}${userInfos.langIso ? '?languageIso=' + userInfos.langIso : ''}`);
-    const wpms = (await data.json()).map(d => ({ wpm: d.wpm, mode: d.typingMode })).sort((a, b) => b.wpm - a.wpm);
+    logFunction(`fetching wpms for ${userId} in lang ${userInfos.langIso}`);
+    const data = await fetch(`https://api.10fastfingers.com/game-mode/typing-test-results/flat-stats/${userId}${userInfos.langIso ? '?languageIso=' + userInfos.langIso : ''}`);
+    const json = Array.from(await data.json());
+    logFunction("json len: " + json.length);
+    const wpms = json.map(d => ({ wpm: d.wpm, mode: d.typingMode })).sort((a, b) => b.wpm - a.wpm);
 
     // Set max WPMs user infos
     userInfos.maxNorm = wpms.find(w => w.mode === 'normal').wpm;
