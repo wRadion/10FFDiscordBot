@@ -50,7 +50,9 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
     }
 
     // Fetch WPMs
+    console.log(response.data);
     const str = response.data.matchAll(/\\\"id\\\":(\d+),\\\"username\\\":\\\"([^\\]+)\\\"/g);
+    console.log(str);
     const ids = Object.fromEntries(str.map(res => [res[2].toLowerCase(), Number(res[1])]));
 
     const data = await fetch(`https://api.10fastfingers.com/game-mode/typing-test-results/flat-stats/${ids[userInfos.name]}${userInfos.langIso ? '?languageIso=' + userInfos.langIso : ''}`);

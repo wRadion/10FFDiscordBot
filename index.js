@@ -118,7 +118,6 @@ client.on('message', async (message) => {
       args.shift();
       CompCreator.createComp(args[0]);
     }*/
-    if (process.env.NODE_ENV === 'production') return;
   } else if (process.env.NODE_ENV !== 'production' || (message.channel.id !== config.channels.autoRoles && message.channel.id !== config.channels.rolesRequest)) {
     return;
   }
