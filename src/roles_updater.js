@@ -10,7 +10,8 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
   return new Promise(async (resolve, reject) => {
     const cleanUrl = url.endsWith('/') ? url.slice(0, url.length - 1) : url;
     const split = cleanUrl.split('/');
-    const langIso = url.match(/10fastfingers\.com\/([^\/]+)\/user/)[1];
+    const match = url.match(/10fastfingers\.com\/([^\/]+)\/user/);
+    const langIso = match ? match[1] : null;
 
     const userInfos = {
       name: split.reverse()[0].toLowerCase().replace('-', '_'),
