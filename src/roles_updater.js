@@ -50,7 +50,7 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
     }
 
     // Fetch WPMs
-    const str = response.data.matchAll(/\\\"id\\\":(\d+),\\\"username\\\":\\\"([^\\]+)\\\"/g);
+    const str = Array.from(response.data.matchAll(/\\\"id\\\":(\d+),\\\"username\\\":\\\"([^\\]+)\\\"/g));
     logFunction(str);
     const ids = Object.fromEntries(str.map(res => [res[2].toLowerCase(), Number(res[1])]));
 
