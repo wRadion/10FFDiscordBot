@@ -28,7 +28,7 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
 
     // Check if the profile is owned by the user
     // The replace is there for escaping the chars used by regexp
-    if (false && !description.match(user.tag.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&')) && !description.match(user.id)) {
+    if (!description.match(user.tag.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&')) && !description.match(user.id)) {
       // Reject Promise
       reject(
         "Couldn't verify your identity." +
@@ -39,8 +39,6 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
     }
 
     // Tests and Competitions Taken
-    console.log($('dt[data-testid="text-label-tests-taken"] + dd').text().replaceAll('a', ''));
-    console.log($('dt[data-testid="text-label-competitions"] + dd').text().split(' ')[0].replaceAll('a', ''));
     userInfos.testsTaken = parseInt($('dt[data-testid="text-label-tests-taken"] + dd').text().replaceAll('a', ''));
     userInfos.competsTaken = parseInt($('dt[data-testid="text-label-competitions"] + dd').text().split(' ')[0].replaceAll('a', ''));
 
