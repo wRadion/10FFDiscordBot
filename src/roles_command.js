@@ -59,11 +59,9 @@ module.exports = {
           }
         }
       ).then(async (roles) => {
-        logFunction("roles to update done");
         const addedRoles = [];
         const removedRoles = [];
 
-        logFunction("roles to add");
         // Add roles to add
         for (let id of roles.toAdd) {
           const role = await server.roles.fetch(id);
@@ -75,7 +73,6 @@ module.exports = {
           }
         }
 
-        logFunction("roles to remove");
         // Remove roles to remove
         for (let id of roles.toRemove) {
           const role = await server.roles.fetch(id);
@@ -87,7 +84,6 @@ module.exports = {
           }
         }
 
-        logFunction("final message");
         if (addedRoles.length > 0 || removedRoles.length > 0) {
           // If there are roles added/removed
           await editMessage({
