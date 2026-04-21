@@ -65,8 +65,8 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
     const wpms = json.map(d => ({ wpm: d.wpm, mode: d.typingMode })).sort((a, b) => b.wpm - a.wpm);
 
     // Set max WPMs user infos
-    userInfos.maxNorm = wpms.find(w => w.mode === 'normal').wpm;
-    userInfos.maxAdv = wpms.find(w => w.mode === 'advanced').wpm;
+    userInfos.maxNorm = wpms.find(w => w.mode === 'normal')?.wpm ?? 0;
+    userInfos.maxAdv = wpms.find(w => w.mode === 'advanced')?.wpm ?? 0;
     logFunction("wpms fetched");
 
     // Get competition wpm (if any is given)
