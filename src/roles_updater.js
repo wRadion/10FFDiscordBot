@@ -54,8 +54,9 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
 
     // Fetch WPMs
     const str = Array.from(response.data.matchAll(/\\\"id\\\":(\d+),\\\"username\\\":\\\"([^\\]+)\\\"/g));
-    const ids = Object.fromEntries(str.map(res => [res[2].toLowerCase(), Number(res[1])]));
-    logFunction("Ids: " + ids);
+    const arr = str.map(res => [res[2].toLowerCase(), Number(res[1])]);
+    const ids = Object.fromEntries(arr);
+    logFunction("Ids: " + arr);
     const userId = ids[userInfos.name] ?? ids[userInfos.name.replace('-', '_')];
 
     logFunction(`fetching wpms for ${userId} in lang ${userInfos.langIso}`);
