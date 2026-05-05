@@ -14,7 +14,7 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
     const langIso = match ? match[1] : null;
 
     const userInfos = {
-      name: split.reverse()[0].toLowerCase().replace('-', '_'),
+      name: split.reverse()[0].toLowerCase(),
       langId: langId,
       langIso: langId > 0 ? LANGUAGES[langId].iso : (langIso ?? null)
     };
@@ -56,7 +56,7 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
     const str = Array.from(response.data.matchAll(/\\\"id\\\":(\d+),\\\"username\\\":\\\"([^\\]+)\\\"/g));
     const ids = Object.fromEntries(str.map(res => [res[2].toLowerCase(), Number(res[1])]));
     logFunction("Ids: " + ids);
-    const userId = ids[userInfos.name];
+    const userId = ids[userInfos.name] ?? ids[userInfos.name.replace('-', '_')];
 
     logFunction(`fetching wpms for ${userId} in lang ${userInfos.langIso}`);
     const data = await fetch(`https://api.10fastfingers.com/game-mode/typing-test-results/flat-stats/${userId}${userInfos.langIso ? '?languageIso=' + userInfos.langIso : ''}`);
