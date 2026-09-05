@@ -3,14 +3,12 @@ const cheerio = require('cheerio');
 const moment = require('moment');
 
 const ROLES = require('../data/roles.json');
-const ACHIEVEMENTS = require('../data/achievements.json');
 const LANGUAGES = require('../data/languages.json');
 
-function getUserInfos(user, url, langId, compUrl, logFunction) {
-  return new Promise(async (resolve, reject) => {
+async function getUserInfos(user, url, langId, compUrl, logFunction) {
     const cleanUrl = url.endsWith('/') ? url.slice(0, url.length - 1) : url;
     const split = cleanUrl.split('/');
-    const match = url.match(/10fastfingers\.com\/([^\/]+)\/user/);
+    const match = url.match(/10fastfingers\.com\/([^/]+)\/user/);
     const langIso = match ? match[1] : null;
 
     const userInfos = {
@@ -20,10 +18,12 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
     };
 
     // Fetch page HTML
-    let response = await axios.get(url).catch(reject);
-    if (!response) return;
+    logFunction(`Fetching profile page: GET ${url}`);
+    const response = await axios.get(url);
+    logFunction(`Profile page received: HTTP ${response.status}`);
 
     // Load HTML with cheerio
+    logFunction('Parsing profile HTML and checking ownership...');
     const $ = cheerio.load(response.data);
 
     // Get 10FF profile description
@@ -32,35 +32,34 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
     // Check if the profile is owned by the user
     // The replace is there for escaping the chars used by regexp
     if (!description.match(user.tag.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&')) && !description.match(user.id)) {
-      // Reject Promise
-      reject(
+      throw new Error(
         "Couldn't verify your identity." +
         ` Please write your Discord full tag (**${user.tag}**)` +
         ` OR your Discord ID (**${user.id}**) in your 10FF profile **description** and retry.;;👤`
       );
-      return;
     }
 
     // Tests and Competitions Taken
+    logFunction('Profile ownership verified. Reading test and competition counts...');
     userInfos.testsTaken = parseInt($('dt[data-testid="text-label-tests-taken"] + dd').text().replaceAll('a', ''));
     userInfos.competsTaken = parseInt($('dt[data-testid="text-label-competitions"] + dd').text().split(' ')[0].replaceAll('a', ''));
+    logFunction(`Profile counts: tests=${userInfos.testsTaken}, competitions=${userInfos.competsTaken}`);
 
     // Check if user has done at least one test
     if (userInfos.testsTaken <= 0) {
-      // Reject Promise
-      reject("You need to do at least one test on 10FF to have a WPM role (competitions are excluded).;;0⃣");
-      return;
+      throw new Error("You need to do at least one test on 10FF to have a WPM role (competitions are excluded).;;0⃣");
     }
 
     // Fetch WPMs
-    const str = Array.from(response.data.matchAll(/\\\"id\\\":(\d+),\\\"username\\\":\\\"([^\\]+)\\\"/g));
+    const str = Array.from(response.data.matchAll(/\\"id\\":(\d+),\\"username\\":\\"([^\\]+)\\"/g));
     const arr = str.map(res => [res[2].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(' ', '-'), Number(res[1])]);
     const ids = Object.fromEntries(arr);
     logFunction("Ids: " + arr);
     const userId = ids[userInfos.name] ?? ids[userInfos.name.replace('-', '_')];
 
     logFunction(`fetching wpms for ${userId} in lang ${userInfos.langIso}`);
-    const data = await fetch(`https://api.10fastfingers.com/game-mode/typing-test-results/flat-stats/${userId}${userInfos.langIso ? '?languageIso=' + userInfos.langIso : ''}`);
+    const data = await globalThis.fetch(`https://api.10fastfingers.com/game-mode/typing-test-results/flat-stats/${userId}${userInfos.langIso ? '?languageIso=' + userInfos.langIso : ''}`);
+    logFunction(`WPM API response received: HTTP ${data.status}. Parsing JSON...`);
     const json = Array.from(await data.json());
     logFunction("json len: " + json.length);
     const wpms = json.map(d => ({ wpm: d.wpm, mode: d.typingMode })).sort((a, b) => b.wpm - a.wpm);
@@ -131,15 +130,13 @@ function getUserInfos(user, url, langId, compUrl, logFunction) {
       userInfos.ageInYears = 0;
     }
 
-    // Resolve Promise
-    resolve(userInfos);
-  });
+    return userInfos;
 }
 
 module.exports = {
-  getRolesToUpdate: function(user, member, url, langId, norm, adv, compUrl, logFunction, callbackWarn) {
-    return getUserInfos(user, url, langId, compUrl, logFunction).then((userInfos) => {
-      return new Promise(async (resolve, reject) => {
+  async getRolesToUpdate(user, member, url, langId, norm, adv, compUrl, logFunction, callbackWarn) {
+    const userInfos = await getUserInfos(user, url, langId, compUrl, logFunction);
+    logFunction(`Calculating role changes: maxNorm=${userInfos.maxNorm}, maxAdv=${userInfos.maxAdv}, requestedNorm=${norm}, requestedAdv=${adv}`);
         const rolesToUpdate = {};
         rolesToUpdate.toAdd = [];
         rolesToUpdate.toRemove = [];
@@ -150,13 +147,9 @@ module.exports = {
 
         // Check requested norm/adv WPM with max scores
         if (norm > userInfos.maxNorm) {
-          // Reject Promise
-          reject(`You can't have the **${norm}-${norm+9} WPM** role as your detected max normal WPM is **${userInfos.maxNorm} WPM**.;;🚫`);
-          return;
+      throw new Error(`You can't have the **${norm}-${norm+9} WPM** role as your detected max normal WPM is **${userInfos.maxNorm} WPM**.;;🚫`);
         } else if (adv > userInfos.maxAdv) {
-          // Reject Promise
-          reject(`You can't have the **${adv}-${adv+9} WPM (Advanced)** role as your detected max advanced WPM is **${userInfos.maxAdv} WPM**.;;🚫`);
-          return;
+      throw new Error(`You can't have the **${adv}-${adv+9} WPM (Advanced)** role as your detected max advanced WPM is **${userInfos.maxAdv} WPM**.;;🚫`);
         }
 
         // Get current roles
@@ -217,7 +210,13 @@ module.exports = {
             if (wpmAdvRoleIndex >= 0) wpmRoles.push(`${Object.keys(ROLES.adv)[wpmAdvRoleIndex]} WPM (Advanced)`)
           }
         }
-        if (wpmRoles.length > 0) callbackWarn(userInfos.maxNorm, userInfos.maxAdv, wpmRoles, removeVerified, removeVerifiedAdv);
+    if (wpmRoles.length > 0) {
+      try {
+        await callbackWarn(userInfos.maxNorm, userInfos.maxAdv, wpmRoles, removeVerified, removeVerifiedAdv);
+      } catch (error) {
+        logFunction(`Could not notify moderators: ${error.message}`);
+      }
+    }
 
         // Specials Roles
         function specialRole(boolean, role) {
@@ -239,9 +238,7 @@ module.exports = {
           specialRole(true, yearRole);
         }
 
-        // Resolve Promise
-        resolve(rolesToUpdate);
-      });
-    });
-  }
+    logFunction(`Role changes calculated: add=[${rolesToUpdate.toAdd.join(', ')}], remove=[${rolesToUpdate.toRemove.join(', ')}]`);
+    return rolesToUpdate;
+  },
 };
