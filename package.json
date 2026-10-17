@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint index.js src/request_queue.js src/roles_command.js src/roles_updater.js",
+    "test": "npm run lint"
   },
   "repository": {
     "type": "git",
@@ -21,10 +22,13 @@
     "@googleapis/sheets": "^5.0.4",
     "axios": "^0.21.0",
     "cheerio": "^1.0.0-rc.3",
-    "discord.js": "^12.5.3",
+    "discord.js": "^14.27.0",
     "dotenv": "^16.0.3",
     "eslint": "^7.9.0",
     "moment": "^2.29.2",
     "node-schedule": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=18.17"
   }
 }

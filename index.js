@@ -1,9 +1,21 @@
 require('dotenv').config();
 
-const Discord = require('discord.js');
-const client = new Discord.Client();
-const schedule = require('node-schedule');
-
+const {
+  ChannelType,
+  Client,
+  Events,
+  GatewayIntentBits,
+  Partials,
+} = require('discord.js');
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.MessageContent,
+  ],
+  partials: [Partials.Channel],
+});
 const RequestQueue = require('./src/request_queue');
 // const LeaderboardWatcher = require('./src/leaderboard_watcher');
 //const CompCreator = require('./src/comp_creator');
@@ -20,14 +32,18 @@ let leaderboardWatcher;
 
 let mutedUsers = [];
 
-client.on('ready', async () => {
-  console.log(`Logged in as ${client.user.tag}!`);
+client.once(Events.ClientReady, async () => {
+  try {
+    console.log(`Logged in as ${client.user.tag}!`);
 
   // Fetch Guild
   server = await client.guilds.fetch(config.guildId);
 
   // Fetch #auto-roles Channel
-  autoRolesChannel = server.channels.resolve(config.channels.autoRoles);
+  autoRolesChannel = await server.channels.fetch(config.channels.autoRoles);
+  if (!autoRolesChannel?.isTextBased()) {
+    throw new Error(`Configured auto-roles channel ${config.channels.autoRoles} is not text-based`);
+  }
 
   // Initialize RequestQueue
   queue = new RequestQueue(server);
@@ -50,8 +66,13 @@ client.on('ready', async () => {
     // schedule.scheduleJob('2 0 22 * *',function() { leaderboardWatcher.detectAccountsChange(28, 57) });
   }
 
-  console.log('Bot is Ready!');
-  console.log('NODE_ENV = ' + process.env.NODE_ENV);
+    console.log('Bot is Ready!');
+    console.log('NODE_ENV = ' + process.env.NODE_ENV);
+  } catch (error) {
+    console.error('Discord client initialization failed:', error);
+    client.destroy();
+    process.exitCode = 1;
+  }
 });
 
 process.on('SIGINT', () => {
@@ -60,37 +81,43 @@ process.on('SIGINT', () => {
   process.exit();
 });
 
-client.on('message', async (message) => {
+client.on(Events.MessageCreate, message => {
+  void handleMessage(message).catch(error => {
+    console.error('Failed to process Discord message:', error);
+  });
+});
+
+async function handleMessage(message) {
   let user = message.author;
 
   // If it's this bot, just skip
   if (user.id === client.user.id) return;
 
-  if (mutedUsers.includes(user.id) && message.channel.type !== 'dm') {
+  if (mutedUsers.includes(user.id) && message.channel.type !== ChannelType.DM) {
     await message.delete();
     return;
   }
 
-  if (message.channel.type === 'dm' && [config.users.wradion, ...Object.values(config.moderators)].includes(user.id)) {
+  if (message.channel.type === ChannelType.DM && [config.users.wradion, ...Object.values(config.moderators)].includes(user.id)) {
     if (message.content === 'disable') {
       console.debug('Disabling the bot...');
       await autoRolesChannel.send({
-        embed: {
+        embeds: [{
           color: COLORS.warning,
           description: '⚠ Bot is now disabled due to maintenance.'
-        }
+        }]
       });
-      await autoRolesChannel.updateOverwrite(server.roles.everyone, { SEND_MESSAGES: false });
+      await autoRolesChannel.permissionOverwrites.edit(server.roles.everyone, { SendMessages: false });
       console.debug('Bot disabled.');
       return;
     } else if (message.content === 'enable') {
       console.debug('Enabling the bot...');
-      await autoRolesChannel.updateOverwrite(server.roles.everyone, { SEND_MESSAGES: null });
+      await autoRolesChannel.permissionOverwrites.edit(server.roles.everyone, { SendMessages: null });
       await autoRolesChannel.send({
-        embed: {
+        embeds: [{
           color: COLORS.success,
           description: ':white_check_mark: Bot is now enabled!'
-        }
+        }]
       });
       console.debug('Bot enabled!');
       return;
@@ -127,11 +154,11 @@ client.on('message', async (message) => {
   const command = args.shift();
 
   // Create DM channel if needed
-  let dm = user.dmChannel;
+  let dm;
   let member = await server.members.fetch(user.id);
 
   try {
-    if (!dm) dm = await member.createDM();
+    dm = await user.createDM();
   } catch (e) {
     console.debug(`[${user.username}] Could not create DM channel - ${e.name}: ${e.message}`);
   }
@@ -153,10 +180,10 @@ client.on('message', async (message) => {
       if (user.id !== client.user.id && user.id !== config.users.wradion) {
         // Command is not !roles, channel is right channel, user is not bot or wRadion
         await send({
-          embed: {
+          embeds: [{
             color: COLORS.error,
             description: `:no_entry: You can only use the \`!roles\` command inside the ${autoRolesChannel} channel.`
-          }
+          }]
         });
         await message.delete();
         return;
@@ -171,10 +198,10 @@ client.on('message', async (message) => {
   } else if (message.channel.id === config.channels.rolesRequest) {
     // Command is !roles, channel is rolesRequest channel
     await send({
-      embed: {
+      embeds: [{
         color: COLORS.error,
         description: `:no_entry: You must use the \`!roles\` command inside the ${autoRolesChannel} channel.`
-      }
+      }]
     });
     await message.delete();
     return;
@@ -190,12 +217,12 @@ client.on('message', async (message) => {
 
   if (command === '!rolesclear') {
     try {
-      member.roles.cache.forEach(role => {
+      for (const role of member.roles.cache.values()) {
         const rid = role.id.toString();
         if (Object.values(ROLES.norm).includes(rid) || Object.values(ROLES.adv).includes(rid) || rid == ROLES.verified || rid == ROLES.verifiedAdv) {
-          member.roles.remove(role.id);
+          await member.roles.remove(role.id);
         }
-      });
+      }
       await message.react('✅');
     } catch (error) {
       console.error(error);
@@ -229,18 +256,18 @@ client.on('message', async (message) => {
     else if (language && !LANGUAGES.find(l => l !== null && l.name === language)) error = `Language \`${language}\` doesn't exist or is not supported`;
     else if (0 > norm || norm >= 250) error = 'Normal WPM should be between 0 and 250';
     else if (0 > adv || adv >= 220) error = 'Advanced WPM should be between 0 and 220';
-  };
+  }
 
   // Display error and return if any
   if (error) {
     await send({
-      embed: {
+      embeds: [{
         color: COLORS.error,
         description: `:x: **Error:** ${error}.\n\n` +
           `Please read https://github.com/wRadion/10FFDiscordBot for more help.`
-      }
+      }]
     });
-    if (message.channel.type !== 'dm') await message.delete();
+    if (message.channel.type !== ChannelType.DM) await message.delete();
     return;
   }
 
@@ -259,12 +286,19 @@ client.on('message', async (message) => {
 
   if (position > 0) {
     await send({
-      embed: {
+      embeds: [{
         color: COLORS.info,
         description: `:information_source: Your request has been registered. You're in position **#${position}** in the queue.`
-      }
+      }]
     });
   }
+}
+
+client.on(Events.Error, error => {
+  console.error('Discord client error:', error);
 });
 
-client.login(process.env.DISCORD_BOT_TOKEN);
+client.login(process.env.DISCORD_BOT_TOKEN).catch(error => {
+  console.error('Unable to log in to Discord:', error);
+  process.exitCode = 1;
+});

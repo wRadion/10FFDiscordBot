@@ -1,5 +1,4 @@
 const axios = require('axios').default;
-const cheerio = require('cheerio');
 const moment = require('moment');
 
 const ROLES = require('../data/roles.json');
@@ -17,21 +16,29 @@ async function getUserInfos(user, url, langId, compUrl, logFunction) {
       langIso: langId > 0 ? LANGUAGES[langId].iso : (langIso ?? null)
     };
 
-    // Fetch page HTML
-    logFunction(`Fetching profile page: GET ${url}`);
-    const response = await axios.get(url);
-    logFunction(`Profile page received: HTTP ${response.status}`);
-
-    // Load HTML with cheerio
-    logFunction('Parsing profile HTML and checking ownership...');
-    const $ = cheerio.load(response.data);
+    // Fetch profile from the 10FF API
+    // (the HTML profile pages are behind a Cloudflare challenge and return 403 to the bot)
+    let slug = userInfos.name;
+    try { slug = decodeURIComponent(slug); } catch { /* keep raw slug */ }
+    const profileUrl = `https://api.10fastfingers.com/account/profile/${encodeURIComponent(slug)}`;
+    logFunction(`Fetching profile: GET ${profileUrl}`);
+    const response = await axios.get(profileUrl, { validateStatus: status => status < 500 });
+    logFunction(`Profile received: HTTP ${response.status}`);
+    if (response.status !== 200 || !response.data?.user) {
+      throw new Error(`Couldn't find the 10FF profile **${slug}**. Please check your profile URL`);
+    }
+    const profile = response.data;
 
     // Get 10FF profile description
-    const description = $('p[data-testid="bio-text"]').text();
+    logFunction('Checking profile ownership...');
+    const description = (profile.bio ?? '').toLowerCase();
 
     // Check if the profile is owned by the user
+    // The username must not be surrounded by other username chars, so "bob" doesn't match "bobby"
     // The replace is there for escaping the chars used by regexp
-    if (!description.match(user.tag.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&')) && !description.match(user.id)) {
+    const tag = user.tag.toLowerCase().replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');
+    const tagRegExp = new RegExp(`(?<![a-z0-9_.])${tag}(?![a-z0-9_.])`);
+    if (!tagRegExp.test(description) && !description.includes(user.id)) {
       throw new Error(
         "Couldn't verify your identity." +
         ` Please write your Discord full tag (**${user.tag}**)` +
@@ -41,8 +48,8 @@ async function getUserInfos(user, url, langId, compUrl, logFunction) {
 
     // Tests and Competitions Taken
     logFunction('Profile ownership verified. Reading test and competition counts...');
-    userInfos.testsTaken = parseInt($('dt[data-testid="text-label-tests-taken"] + dd').text().replaceAll('a', ''));
-    userInfos.competsTaken = parseInt($('dt[data-testid="text-label-competitions"] + dd').text().split(' ')[0].replaceAll('a', ''));
+    userInfos.testsTaken = profile.testsTaken ?? 0;
+    userInfos.competsTaken = profile.competitionsParticipated ?? 0;
     logFunction(`Profile counts: tests=${userInfos.testsTaken}, competitions=${userInfos.competsTaken}`);
 
     // Check if user has done at least one test
@@ -51,11 +58,7 @@ async function getUserInfos(user, url, langId, compUrl, logFunction) {
     }
 
     // Fetch WPMs
-    const str = Array.from(response.data.matchAll(/\\"id\\":(\d+),\\"username\\":\\"([^\\]+)\\"/g));
-    const arr = str.map(res => [res[2].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(' ', '-'), Number(res[1])]);
-    const ids = Object.fromEntries(arr);
-    logFunction("Ids: " + arr);
-    const userId = ids[userInfos.name] ?? ids[userInfos.name.replace('-', '_')];
+    const userId = profile.user.id;
 
     logFunction(`fetching wpms for ${userId} in lang ${userInfos.langIso}`);
     const data = await globalThis.fetch(`https://api.10fastfingers.com/game-mode/typing-test-results/flat-stats/${userId}${userInfos.langIso ? '?languageIso=' + userInfos.langIso : ''}`);
@@ -119,7 +122,7 @@ async function getUserInfos(user, url, langId, compUrl, logFunction) {
     // userInfos.multilingual = data.languages_sorted.filter(a => parseInt(a['0'].anzahl) >= 50).length >= 10;
 
     // Year age member
-    let dateStr = $('time[data-testid="DateTime-root"]').attr('datetime');
+    let dateStr = profile.createdAt;
     if (dateStr && dateStr.length > 0) {
       const date = new Date(dateStr);
       logFunction(`Date detected: ${date}`);

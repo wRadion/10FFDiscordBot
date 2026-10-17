@@ -25,6 +25,11 @@
 
 ## Summary
 
+### Hosting requirements
+
+- Node.js 18.17 or newer.
+- Enable **Message Content Intent** on the bot's **Bot** page in the Discord Developer Portal. The bot uses message-based commands and cannot read command text without this privileged intent.
+
 Usage:
 ```
 !roles <your 10FF profile URL>
